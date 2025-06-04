@@ -198,6 +198,17 @@
         .easy { background: #c6f6d5; color: #22543d; }
         .medium { background: #feebc8; color: #744210; }
         .hard { background: #fed7d7; color: #742a2a; }
+        
+        .clear-data-btn {
+            background: #e53e3e;
+            font-size: 12px;
+            padding: 8px 16px;
+            margin-top: 10px;
+        }
+        
+        .clear-data-btn:hover {
+            background: #c53030;
+        }
     </style>
 </head>
 <body>
@@ -227,8 +238,41 @@
             ]
         };
 
+        // LocalStorage utility functions
+        const STORAGE_KEYS = {
+            LEADERBOARD: 'french-spelling-leaderboard',
+            GAME_STATE: 'french-spelling-game-state',
+            USER_PREFERENCES: 'french-spelling-preferences'
+        };
+
+        const saveToStorage = (key, data) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (error) {
+                console.warn('Failed to save to localStorage:', error);
+            }
+        };
+
+        const loadFromStorage = (key, defaultValue = null) => {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (error) {
+                console.warn('Failed to load from localStorage:', error);
+                return defaultValue;
+            }
+        };
+
+        const clearStorage = (key) => {
+            try {
+                localStorage.removeItem(key);
+            } catch (error) {
+                console.warn('Failed to clear localStorage:', error);
+            }
+        };
+
         function SpellingGame() {
-            const [gameState, setGameState] = useState('start'); // 'start', 'playing', 'finished'
+            const [gameState, setGameState] = useState('start');
             const [difficulty, setDifficulty] = useState('facile');
             const [currentQuestion, setCurrentQuestion] = useState(0);
             const [score, setScore] = useState(0);
@@ -236,6 +280,70 @@
             const [userInput, setUserInput] = useState('');
             const [feedback, setFeedback] = useState('');
             const [leaderboard, setLeaderboard] = useState([]);
+
+            // Load data from localStorage on component mount
+            useEffect(() => {
+                const savedLeaderboard = loadFromStorage(STORAGE_KEYS.LEADERBOARD, []);
+                const savedPreferences = loadFromStorage(STORAGE_KEYS.USER_PREFERENCES, {});
+                
+                setLeaderboard(savedLeaderboard);
+                
+                // Restore user preferences
+                if (savedPreferences.difficulty) {
+                    setDifficulty(savedPreferences.difficulty);
+                }
+
+                // Check for interrupted game
+                const savedGameState = loadFromStorage(STORAGE_KEYS.GAME_STATE);
+                if (savedGameState && savedGameState.gameState === 'playing') {
+                    // Ask user if they want to continue
+                    const continueGame = window.confirm('Vous avez une partie en cours. Voulez-vous la continuer?');
+                    if (continueGame) {
+                        setGameState(savedGameState.gameState);
+                        setDifficulty(savedGameState.difficulty);
+                        setCurrentQuestion(savedGameState.currentQuestion);
+                        setScore(savedGameState.score);
+                        setGameWords(savedGameState.gameWords);
+                        setUserInput('');
+                        setFeedback('');
+                        
+                        // Speak the current word
+                        setTimeout(() => {
+                            speakWord(savedGameState.gameWords[savedGameState.currentQuestion]);
+                        }, 500);
+                    } else {
+                        clearStorage(STORAGE_KEYS.GAME_STATE);
+                    }
+                }
+            }, []);
+
+            // Save leaderboard to localStorage whenever it changes
+            useEffect(() => {
+                if (leaderboard.length > 0) {
+                    saveToStorage(STORAGE_KEYS.LEADERBOARD, leaderboard);
+                }
+            }, [leaderboard]);
+
+            // Save user preferences
+            useEffect(() => {
+                saveToStorage(STORAGE_KEYS.USER_PREFERENCES, { difficulty });
+            }, [difficulty]);
+
+            // Save game state during gameplay
+            useEffect(() => {
+                if (gameState === 'playing') {
+                    const gameStateData = {
+                        gameState,
+                        difficulty,
+                        currentQuestion,
+                        score,
+                        gameWords
+                    };
+                    saveToStorage(STORAGE_KEYS.GAME_STATE, gameStateData);
+                } else {
+                    clearStorage(STORAGE_KEYS.GAME_STATE);
+                }
+            }, [gameState, difficulty, currentQuestion, score, gameWords]);
 
             const speakWord = (word) => {
                 if ('speechSynthesis' in window) {
@@ -304,12 +412,21 @@
             const finishGame = (finalScore = score) => {
                 const gameResult = {
                     date: new Date().toLocaleDateString('fr-FR'),
+                    time: new Date().toLocaleTimeString('fr-FR'),
                     score: finalScore,
                     difficulty: difficulty,
                     timestamp: Date.now()
                 };
                 
-                setLeaderboard(prev => [...prev, gameResult].sort((a, b) => b.score - a.score).slice(0, 10));
+                const newLeaderboard = [...leaderboard, gameResult]
+                    .sort((a, b) => {
+                        // Sort by score first, then by timestamp for ties
+                        if (b.score !== a.score) return b.score - a.score;
+                        return b.timestamp - a.timestamp;
+                    })
+                    .slice(0, 10);
+                
+                setLeaderboard(newLeaderboard);
                 setGameState('finished');
             };
 
@@ -317,6 +434,19 @@
                 setGameState('start');
                 setUserInput('');
                 setFeedback('');
+                clearStorage(STORAGE_KEYS.GAME_STATE);
+            };
+
+            const clearAllData = () => {
+                const confirmClear = window.confirm('Êtes-vous sûr de vouloir effacer toutes les données sauvegardées?');
+                if (confirmClear) {
+                    clearStorage(STORAGE_KEYS.LEADERBOARD);
+                    clearStorage(STORAGE_KEYS.GAME_STATE);
+                    clearStorage(STORAGE_KEYS.USER_PREFERENCES);
+                    setLeaderboard([]);
+                    setDifficulty('facile');
+                    alert('Toutes les données ont été effacées!');
+                }
             };
 
             const handleKeyPress = (e) => {
@@ -351,13 +481,19 @@
                                     <h3>🏆 Tableau des Scores</h3>
                                     {leaderboard.map((entry, index) => (
                                         <div key={index} className="leaderboard-entry">
-                                            <span>{entry.date}</span>
+                                            <span>{entry.date} {entry.time}</span>
                                             <span className={`difficulty-badge ${entry.difficulty}`}>
                                                 {entry.difficulty}
                                             </span>
                                             <span><strong>{entry.score}/10</strong></span>
                                         </div>
                                     ))}
+                                    <button 
+                                        className="clear-data-btn"
+                                        onClick={clearAllData}
+                                    >
+                                        Effacer toutes les données
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -429,13 +565,19 @@
                                     <h3>🏆 Tableau des Scores</h3>
                                     {leaderboard.map((entry, index) => (
                                         <div key={index} className="leaderboard-entry">
-                                            <span>{entry.date}</span>
+                                            <span>{entry.date} {entry.time}</span>
                                             <span className={`difficulty-badge ${entry.difficulty}`}>
                                                 {entry.difficulty}
                                             </span>
                                             <span><strong>{entry.score}/10</strong></span>
                                         </div>
                                     ))}
+                                    <button 
+                                        className="clear-data-btn"
+                                        onClick={clearAllData}
+                                    >
+                                        Effacer toutes les données
+                                    </button>
                                 </div>
                             )}
                         </div>
