@@ -182,9 +182,167 @@
             margin: 10px 0;
             border-radius: 10px;
             border-left: 4px solid #667eea;
+        }
+        
+        .leaderboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .leaderboard-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .error-count {
+            color: #e53e3e;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .view-errors-btn {
+            background: #ed8936;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        
+        .view-errors-btn:hover {
+            background: #dd6b20;
+            transform: translateY(-1px);
+        }
+        
+        .view-errors-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .errors-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fed7d7;
+            border-radius: 8px;
+            border: 1px solid #e53e3e;
+            animation: expandIn 0.3s ease-out;
+        }
+        
+        @keyframes expandIn {
+            0% { opacity: 0; max-height: 0; }
+            100% { opacity: 1; max-height: 500px; }
+        }
+        
+        .errors-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e53e3e;
+            padding-bottom: 8px;
+        }
+        
+        .errors-title {
+            font-weight: 600;
+            color: #742a2a;
+            font-size: 14px;
+        }
+        
+        .close-errors-btn {
+            background: transparent;
+            color: #742a2a;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            margin: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .close-errors-btn:hover {
+            background: rgba(116, 42, 42, 0.1);
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .error-item {
+            margin: 8px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #e53e3e;
+        }
+        
+        .error-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .error-question {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .error-comparison {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .correct-word {
+            color: #22543d;
+            font-weight: 600;
+            background: #c6f6d5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .user-word {
+            color: #742a2a;
+            font-weight: 600;
+            background: #fed7d7;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-decoration: line-through;
+        }
+        
+        .replay-error-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        
+        .replay-error-btn:hover {
+            background: #38a169;
+            transform: translateY(-1px);
         }
         
         .difficulty-badge {
@@ -208,6 +366,13 @@
         
         .clear-data-btn:hover {
             background: #c53030;
+        }
+        
+        .no-errors {
+            text-align: center;
+            color: #22543d;
+            font-style: italic;
+            padding: 10px;
         }
     </style>
 </head>
@@ -241,6 +406,7 @@
         // LocalStorage utility functions
         const STORAGE_KEYS = {
             LEADERBOARD: 'french-spelling-leaderboard',
+            ERROR_HISTORY: 'french-spelling-error-history', // NEW
             GAME_STATE: 'french-spelling-game-state',
             USER_PREFERENCES: 'french-spelling-preferences'
         };
@@ -271,6 +437,11 @@
             }
         };
 
+        // Generate unique game ID
+        const generateGameId = () => {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        };
+
         function SpellingGame() {
             const [gameState, setGameState] = useState('start');
             const [difficulty, setDifficulty] = useState('facile');
@@ -280,6 +451,9 @@
             const [userInput, setUserInput] = useState('');
             const [feedback, setFeedback] = useState('');
             const [leaderboard, setLeaderboard] = useState([]);
+            const [currentGameId, setCurrentGameId] = useState(null); // NEW
+            const [currentGameErrors, setCurrentGameErrors] = useState([]); // NEW
+            const [expandedErrors, setExpandedErrors] = useState({}); // NEW
 
             // Load data from localStorage on component mount
             useEffect(() => {
@@ -304,6 +478,8 @@
                         setCurrentQuestion(savedGameState.currentQuestion);
                         setScore(savedGameState.score);
                         setGameWords(savedGameState.gameWords);
+                        setCurrentGameId(savedGameState.currentGameId); // NEW
+                        setCurrentGameErrors(savedGameState.currentGameErrors || []); // NEW
                         setUserInput('');
                         setFeedback('');
                         
@@ -337,18 +513,20 @@
                         difficulty,
                         currentQuestion,
                         score,
-                        gameWords
+                        gameWords,
+                        currentGameId, // NEW
+                        currentGameErrors // NEW
                     };
                     saveToStorage(STORAGE_KEYS.GAME_STATE, gameStateData);
                 } else {
                     clearStorage(STORAGE_KEYS.GAME_STATE);
                 }
-            }, [gameState, difficulty, currentQuestion, score, gameWords]);
+            }, [gameState, difficulty, currentQuestion, score, gameWords, currentGameId, currentGameErrors]);
 
             const speakWord = (word) => {
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(word);
-                    utterance.lang = 'fr_FR';
+                    utterance.lang = 'fr-FR';
                     utterance.rate = 0.8;
                     window.speechSynthesis.speak(utterance);
                 }
@@ -357,11 +535,15 @@
             const startGame = () => {
                 const wordList = WORDS[difficulty];
                 const selectedWords = wordList.sort(() => 0.5 - Math.random()).slice(0, 10);
+                const newGameId = generateGameId(); // NEW
+                
                 setGameWords(selectedWords);
                 setCurrentQuestion(0);
                 setScore(0);
                 setUserInput('');
                 setFeedback('');
+                setCurrentGameId(newGameId); // NEW
+                setCurrentGameErrors([]); // NEW
                 setGameState('playing');
                 
                 // Speak first word after a short delay
@@ -378,6 +560,25 @@
                 if (isCorrect) {
                     newScore = score + 1;
                     setScore(newScore);
+                } else {
+                    // NEW: Track error
+                    const errorEntry = {
+                        gameId: currentGameId,
+                        timestamp: Date.now(),
+                        word: currentWord,
+                        userInput: userInput.trim(),
+                        difficulty: difficulty,
+                        questionNumber: currentQuestion + 1
+                    };
+                    
+                    // Add to current game errors
+                    const newGameErrors = [...currentGameErrors, errorEntry];
+                    setCurrentGameErrors(newGameErrors);
+                    
+                    // Add to error history
+                    const errorHistory = loadFromStorage(STORAGE_KEYS.ERROR_HISTORY, []);
+                    errorHistory.push(errorEntry);
+                    saveToStorage(STORAGE_KEYS.ERROR_HISTORY, errorHistory);
                 }
 
                 // Set feedback for previous answer
@@ -411,11 +612,13 @@
 
             const finishGame = (finalScore = score) => {
                 const gameResult = {
+                    id: currentGameId, // NEW: unique identifier
                     date: new Date().toLocaleDateString('fr-FR'),
                     time: new Date().toLocaleTimeString('fr-FR'),
                     score: finalScore,
                     difficulty: difficulty,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    errorCount: currentGameErrors.length // NEW: total errors in this game
                 };
                 
                 const newLeaderboard = [...leaderboard, gameResult]
@@ -434,6 +637,8 @@
                 setGameState('start');
                 setUserInput('');
                 setFeedback('');
+                setCurrentGameId(null); // NEW
+                setCurrentGameErrors([]); // NEW
                 clearStorage(STORAGE_KEYS.GAME_STATE);
             };
 
@@ -441,12 +646,82 @@
                 const confirmClear = window.confirm('Êtes-vous sûr de vouloir effacer toutes les données sauvegardées?');
                 if (confirmClear) {
                     clearStorage(STORAGE_KEYS.LEADERBOARD);
+                    clearStorage(STORAGE_KEYS.ERROR_HISTORY); // NEW
                     clearStorage(STORAGE_KEYS.GAME_STATE);
                     clearStorage(STORAGE_KEYS.USER_PREFERENCES);
                     setLeaderboard([]);
                     setDifficulty('facile');
                     alert('Toutes les données ont été effacées!');
                 }
+            };
+
+            // NEW: Get errors for a specific game
+            const getErrorsForGame = (gameId) => {
+                const errorHistory = loadFromStorage(STORAGE_KEYS.ERROR_HISTORY, []);
+                return errorHistory.filter(error => error.gameId === gameId);
+            };
+
+            // NEW: Toggle error display
+            const toggleErrorDisplay = (gameId) => {
+                setExpandedErrors(prev => ({
+                    ...prev,
+                    [gameId]: !prev[gameId]
+                }));
+            };
+
+            // NEW: Error display component
+            const ErrorDisplay = ({ gameId }) => {
+                const errors = getErrorsForGame(gameId);
+                
+                if (errors.length === 0) {
+                    return (
+                        <div className="errors-section">
+                            <div className="errors-header">
+                                <span className="errors-title">❌ Erreurs de cette partie</span>
+                                <button 
+                                    className="close-errors-btn"
+                                    onClick={() => toggleErrorDisplay(gameId)}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            <div className="no-errors">Aucune erreur dans cette partie! 🎉</div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="errors-section">
+                        <div className="errors-header">
+                            <span className="errors-title">❌ Erreurs de cette partie ({errors.length})</span>
+                            <button 
+                                className="close-errors-btn"
+                                onClick={() => toggleErrorDisplay(gameId)}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        {errors.map((error, index) => (
+                            <div key={index} className="error-item">
+                                <div className="error-details">
+                                    <div className="error-question">Question {error.questionNumber}/10</div>
+                                    <div className="error-comparison">
+                                        <span>Correct:</span>
+                                        <span className="correct-word">{error.word}</span>
+                                        <span>Votre réponse:</span>
+                                        <span className="user-word">{error.userInput}</span>
+                                        <button 
+                                            className="replay-error-btn"
+                                            onClick={() => speakWord(error.word)}
+                                        >
+                                            🔊 Écouter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
             };
 
             const handleKeyPress = (e) => {
@@ -481,11 +756,31 @@
                                     <h3>🏆 Tableau des Scores</h3>
                                     {leaderboard.map((entry, index) => (
                                         <div key={index} className="leaderboard-entry">
-                                            <span>{entry.date} {entry.time}</span>
-                                            <span className={`difficulty-badge ${entry.difficulty}`}>
-                                                {entry.difficulty}
-                                            </span>
-                                            <span><strong>{entry.score}/10</strong></span>
+                                            <div className="leaderboard-header">
+                                                <div className="leaderboard-info">
+                                                    <span>{entry.date} {entry.time}</span>
+                                                    <span className={`difficulty-badge ${entry.difficulty}`}>
+                                                        {entry.difficulty}
+                                                    </span>
+                                                    <span><strong>{entry.score}/10</strong></span>
+                                                    {entry.errorCount > 0 && (
+                                                        <span className="error-count">
+                                                            ({entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {entry.id && (
+                                                    <button 
+                                                        className="view-errors-btn"
+                                                        onClick={() => toggleErrorDisplay(entry.id)}
+                                                    >
+                                                        📝 Voir erreurs
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {expandedErrors[entry.id] && entry.id && (
+                                                <ErrorDisplay gameId={entry.id} />
+                                            )}
                                         </div>
                                     ))}
                                     <button 
@@ -508,6 +803,11 @@
                             <div className="score">Score: {score}/{currentQuestion}</div>
                             <div className="question-info">
                                 Question {currentQuestion + 1}/10 - Difficulté: {difficulty}
+                                {currentGameErrors.length > 0 && (
+                                    <div className="error-count">
+                                        {currentGameErrors.length} erreur{currentGameErrors.length > 1 ? 's' : ''} jusqu'ici
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="game-section">
@@ -526,6 +826,10 @@
                                         onChange={(e) => setUserInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tapez le mot ici..."
+                                        autocapitalize="none" 
+                                        autocomplete="off" 
+                                        autocorrect="off" 
+                                        spellcheck="false"
                                     />
                                     <button 
                                         onClick={submitAnswer}
@@ -556,6 +860,11 @@
                             <div className="score">Score Final: {score}/10</div>
                             <div className="question-info">
                                 Difficulté: {difficulty}
+                                {currentGameErrors.length > 0 && (
+                                    <div className="error-count">
+                                        {currentGameErrors.length} erreur{currentGameErrors.length > 1 ? 's' : ''} dans cette partie
+                                    </div>
+                                )}
                             </div>
                             
                             <button onClick={resetGame}>Rejouer</button>
@@ -565,11 +874,31 @@
                                     <h3>🏆 Tableau des Scores</h3>
                                     {leaderboard.map((entry, index) => (
                                         <div key={index} className="leaderboard-entry">
-                                            <span>{entry.date} {entry.time}</span>
-                                            <span className={`difficulty-badge ${entry.difficulty}`}>
-                                                {entry.difficulty}
-                                            </span>
-                                            <span><strong>{entry.score}/10</strong></span>
+                                            <div className="leaderboard-header">
+                                                <div className="leaderboard-info">
+                                                    <span>{entry.date} {entry.time}</span>
+                                                    <span className={`difficulty-badge ${entry.difficulty}`}>
+                                                        {entry.difficulty}
+                                                    </span>
+                                                    <span><strong>{entry.score}/10</strong></span>
+                                                    {entry.errorCount > 0 && (
+                                                        <span className="error-count">
+                                                            ({entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {entry.id && (
+                                                    <button 
+                                                        className="view-errors-btn"
+                                                        onClick={() => toggleErrorDisplay(entry.id)}
+                                                    >
+                                                        📝 Voir erreurs
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {expandedErrors[entry.id] && entry.id && (
+                                                <ErrorDisplay gameId={entry.id} />
+                                            )}
                                         </div>
                                     ))}
                                     <button 
