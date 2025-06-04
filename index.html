@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test d'Orthographe Française</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .start-section {
+            margin-bottom: 30px;
+        }
+        
+        select, input, button {
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .question-info {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        
+        .input-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .word-input {
+            min-width: 300px;
+            font-size: 18px;
+        }
+        
+        .replay-btn {
+            background: #48bb78;
+            padding: 12px 20px;
+        }
+        
+        .replay-btn:hover {
+            background: #38a169;
+        }
+        
+        .feedback-container {
+            height: 80px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .result {
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            animation: slideInFade 3s ease-in-out;
+            width: 100%;
+        }
+        
+        @keyframes slideInFade {
+            0% { opacity: 0; transform: translateX(-20px); }
+            10% { opacity: 1; transform: translateX(0); }
+            90% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(20px); }
+        }
+        
+        .correct {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+        }
+        
+        .incorrect {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 2px solid #e53e3e;
+        }
+        
+        .leaderboard {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .leaderboard h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+        
+        .leaderboard-entry {
+            background: #f7fafc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .difficulty-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .easy { background: #c6f6d5; color: #22543d; }
+        .medium { background: #feebc8; color: #744210; }
+        .hard { background: #fed7d7; color: #742a2a; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const WORDS = {
+            facile: [
+                'chat', 'chien', 'maison', 'école', 'livre', 
+                'table', 'chaise', 'porte', 'fenêtre', 'jardin',
+                'voiture', 'train', 'avion', 'bateau', 'vélo',
+                'rouge', 'bleu', 'vert', 'jaune', 'noir'
+            ],
+            moyen: [
+                'abhorrer', 'acquérir', 'butterfly', 'chrysanthème', 'développer',
+                'excellent', 'fasciner', 'gouvernement', 'hypothèse', 'intelligent',
+                'joaillerie', 'kermesse', 'lymphatique', 'magnifique', 'nécessaire',
+                'obscurité', 'psychiatre', 'quarantaine', 'rhododendron', 'sympathique'
+            ],
+            difficile: [
+                'concupiscence', 'anticonstitutionnellement', 'chrysanthème', 'dithyrambique', 'ecchymose',
+                'flibustier', 'gynécologue', 'hippopotame', 'ichtyologie', 'jalousement',
+                'kinésithérapeute', 'labyrinthique', 'mnemotechnique', 'nomenclature', 'oecuménique',
+                'psychanalyse', 'quincaillerie', 'rhumatisme', 'stéthoscope', 'tyrannosaure'
+            ]
+        };
+
+        function SpellingGame() {
+            const [gameState, setGameState] = useState('start'); // 'start', 'playing', 'finished'
+            const [difficulty, setDifficulty] = useState('facile');
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [score, setScore] = useState(0);
+            const [gameWords, setGameWords] = useState([]);
+            const [userInput, setUserInput] = useState('');
+            const [feedback, setFeedback] = useState('');
+            const [leaderboard, setLeaderboard] = useState([]);
+
+            const speakWord = (word) => {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(word);
+                    utterance.lang = 'fr-FR';
+                    utterance.rate = 0.8;
+                    window.speechSynthesis.speak(utterance);
+                }
+            };
+
+            const startGame = () => {
+                const wordList = WORDS[difficulty];
+                const selectedWords = wordList.sort(() => 0.5 - Math.random()).slice(0, 10);
+                setGameWords(selectedWords);
+                setCurrentQuestion(0);
+                setScore(0);
+                setUserInput('');
+                setFeedback('');
+                setGameState('playing');
+                
+                // Speak first word after a short delay
+                setTimeout(() => {
+                    speakWord(selectedWords[0]);
+                }, 500);
+            };
+
+            const submitAnswer = () => {
+                const currentWord = gameWords[currentQuestion];
+                const isCorrect = userInput.toLowerCase().trim() === currentWord.toLowerCase();
+                
+                let newScore = score;
+                if (isCorrect) {
+                    newScore = score + 1;
+                    setScore(newScore);
+                }
+
+                // Set feedback for previous answer
+                const feedbackMessage = isCorrect 
+                    ? `✅ Correct! Le mot était: ${currentWord}`
+                    : `❌ Incorrect. Le mot était: ${currentWord} (vous avez écrit: ${userInput})`;
+                
+                setFeedback(feedbackMessage);
+
+                // Immediately transition to next question or finish game
+                if (currentQuestion < 9) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setUserInput('');
+                    // Speak next word immediately
+                    setTimeout(() => {
+                        speakWord(gameWords[currentQuestion + 1]);
+                    }, 100);
+                    
+                    // Clear feedback after showing it briefly
+                    setTimeout(() => {
+                        setFeedback('');
+                    }, 3000);
+                } else {
+                    // Clear feedback and finish game after brief delay
+                    setTimeout(() => {
+                        setFeedback('');
+                        finishGame(newScore);
+                    }, 2000);
+                }
+            };
+
+            const finishGame = (finalScore = score) => {
+                const gameResult = {
+                    date: new Date().toLocaleDateString('fr-FR'),
+                    score: finalScore,
+                    difficulty: difficulty,
+                    timestamp: Date.now()
+                };
+                
+                setLeaderboard(prev => [...prev, gameResult].sort((a, b) => b.score - a.score).slice(0, 10));
+                setGameState('finished');
+            };
+
+            const resetGame = () => {
+                setGameState('start');
+                setUserInput('');
+                setFeedback('');
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && userInput.trim()) {
+                    submitAnswer();
+                }
+            };
+
+            if (gameState === 'start') {
+                return (
+                    <div className="container">
+                        <div className="game-card">
+                            <h1>🇫🇷 Test d'Orthographe Française</h1>
+                            <div className="start-section">
+                                <div>
+                                    <label htmlFor="difficulty">Choisissez la difficulté:</label>
+                                    <select 
+                                        id="difficulty"
+                                        value={difficulty} 
+                                        onChange={(e) => setDifficulty(e.target.value)}
+                                    >
+                                        <option value="facile">Facile</option>
+                                        <option value="moyen">Moyen</option>
+                                        <option value="difficile">Difficile</option>
+                                    </select>
+                                </div>
+                                <button onClick={startGame}>Commencer le Jeu</button>
+                            </div>
+                            
+                            {leaderboard.length > 0 && (
+                                <div className="leaderboard">
+                                    <h3>🏆 Tableau des Scores</h3>
+                                    {leaderboard.map((entry, index) => (
+                                        <div key={index} className="leaderboard-entry">
+                                            <span>{entry.date}</span>
+                                            <span className={`difficulty-badge ${entry.difficulty}`}>
+                                                {entry.difficulty}
+                                            </span>
+                                            <span><strong>{entry.score}/10</strong></span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'playing') {
+                return (
+                    <div className="container">
+                        <div className="game-card">
+                            <div className="score">Score: {score}/{currentQuestion}</div>
+                            <div className="question-info">
+                                Question {currentQuestion + 1}/10 - Difficulté: {difficulty}
+                            </div>
+                            
+                            <div className="game-section">
+                                <button 
+                                    className="replay-btn"
+                                    onClick={() => speakWord(gameWords[currentQuestion])}
+                                >
+                                    🔊 Répéter le mot
+                                </button>
+                                
+                                <div className="input-section">
+                                    <input
+                                        type="text"
+                                        className="word-input"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        placeholder="Tapez le mot ici..."
+                                    />
+                                    <button 
+                                        onClick={submitAnswer}
+                                        disabled={!userInput.trim()}
+                                    >
+                                        Valider
+                                    </button>
+                                </div>
+                                
+                                <div className="feedback-container">
+                                    {feedback && (
+                                        <div className={`result ${feedback.includes('Correct') ? 'correct' : 'incorrect'}`}>
+                                            {feedback}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (gameState === 'finished') {
+                return (
+                    <div className="container">
+                        <div className="game-card">
+                            <h1>🎉 Jeu Terminé!</h1>
+                            <div className="score">Score Final: {score}/10</div>
+                            <div className="question-info">
+                                Difficulté: {difficulty}
+                            </div>
+                            
+                            <button onClick={resetGame}>Rejouer</button>
+                            
+                            {leaderboard.length > 0 && (
+                                <div className="leaderboard">
+                                    <h3>🏆 Tableau des Scores</h3>
+                                    {leaderboard.map((entry, index) => (
+                                        <div key={index} className="leaderboard-entry">
+                                            <span>{entry.date}</span>
+                                            <span className={`difficulty-badge ${entry.difficulty}`}>
+                                                {entry.difficulty}
+                                            </span>
+                                            <span><strong>{entry.score}/10</strong></span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        ReactDOM.render(<SpellingGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>
