@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test d'Orthographe Française</title>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script crossorigin
+        src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <style>
         * {
@@ -13,14 +15,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
-        
+
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -30,7 +32,7 @@
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .game-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -39,19 +41,21 @@
             backdrop-filter: blur(10px);
             text-align: center;
         }
-        
+
         h1 {
             color: #4a5568;
             margin-bottom: 30px;
             font-size: 2.5rem;
             font-weight: 700;
         }
-        
+
         .start-section {
             margin-bottom: 30px;
         }
-        
-        select, input, button {
+
+        select,
+        input,
+        button {
             padding: 15px 20px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
@@ -59,13 +63,14 @@
             margin: 10px;
             transition: all 0.3s ease;
         }
-        
-        select:focus, input:focus {
+
+        select:focus,
+        input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -75,39 +80,39 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
         button:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-        
+
         .game-section {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
-        
+
         .score {
             font-size: 1.5rem;
             font-weight: 700;
             color: #667eea;
             margin-bottom: 20px;
         }
-        
+
         .question-info {
             font-size: 1.2rem;
             color: #4a5568;
             margin-bottom: 20px;
         }
-        
+
         .input-section {
             display: flex;
             gap: 15px;
@@ -115,21 +120,21 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-        
+
         .word-input {
             min-width: 300px;
             font-size: 18px;
         }
-        
+
         .replay-btn {
             background: #48bb78;
             padding: 12px 20px;
         }
-        
+
         .replay-btn:hover {
             background: #38a169;
         }
-        
+
         .feedback-container {
             height: 80px;
             margin: 20px 0;
@@ -137,7 +142,7 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .result {
             padding: 15px;
             border-radius: 12px;
@@ -145,37 +150,52 @@
             animation: slideInFade 3s ease-in-out;
             width: 100%;
         }
-        
+
         @keyframes slideInFade {
-            0% { opacity: 0; transform: translateX(-20px); }
-            10% { opacity: 1; transform: translateX(0); }
-            90% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 0; transform: translateX(20px); }
+            0% {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            10% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            90% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
         }
-        
+
         .correct {
             background: #c6f6d5;
             color: #22543d;
             border: 2px solid #48bb78;
         }
-        
+
         .incorrect {
             background: #fed7d7;
             color: #742a2a;
             border: 2px solid #e53e3e;
         }
-        
+
         .leaderboard {
             margin-top: 30px;
             text-align: left;
         }
-        
+
         .leaderboard h3 {
             text-align: center;
             margin-bottom: 20px;
             color: #4a5568;
         }
-        
+
         .leaderboard-entry {
             background: #f7fafc;
             padding: 15px;
@@ -183,7 +203,7 @@
             border-radius: 10px;
             border-left: 4px solid #667eea;
         }
-        
+
         .leaderboard-header {
             display: flex;
             justify-content: space-between;
@@ -191,20 +211,20 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         .leaderboard-info {
             display: flex;
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .error-count {
             color: #e53e3e;
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
+
         .view-errors-btn {
             background: #ed8936;
             color: white;
@@ -217,18 +237,18 @@
             text-transform: none;
             letter-spacing: 0;
         }
-        
+
         .view-errors-btn:hover {
             background: #dd6b20;
             transform: translateY(-1px);
         }
-        
+
         .view-errors-btn:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .errors-section {
             margin-top: 15px;
             padding: 15px;
@@ -237,12 +257,19 @@
             border: 1px solid #e53e3e;
             animation: expandIn 0.3s ease-out;
         }
-        
+
         @keyframes expandIn {
-            0% { opacity: 0; max-height: 0; }
-            100% { opacity: 1; max-height: 500px; }
+            0% {
+                opacity: 0;
+                max-height: 0;
+            }
+
+            100% {
+                opacity: 1;
+                max-height: 500px;
+            }
         }
-        
+
         .errors-header {
             display: flex;
             justify-content: space-between;
@@ -251,13 +278,13 @@
             border-bottom: 1px solid #e53e3e;
             padding-bottom: 8px;
         }
-        
+
         .errors-title {
             font-weight: 600;
             color: #742a2a;
             font-size: 14px;
         }
-        
+
         .close-errors-btn {
             background: transparent;
             color: #742a2a;
@@ -274,13 +301,13 @@
             border-radius: 50%;
             transition: background 0.2s;
         }
-        
+
         .close-errors-btn:hover {
             background: rgba(116, 42, 42, 0.1);
             transform: none;
             box-shadow: none;
         }
-        
+
         .error-item {
             margin: 8px 0;
             padding: 10px;
@@ -288,26 +315,26 @@
             border-radius: 6px;
             border-left: 3px solid #e53e3e;
         }
-        
+
         .error-details {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
-        
+
         .error-question {
             font-size: 12px;
             color: #666;
             font-weight: 600;
         }
-        
+
         .error-comparison {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .correct-word {
             color: #22543d;
             font-weight: 600;
@@ -316,7 +343,7 @@
             border-radius: 4px;
             font-size: 14px;
         }
-        
+
         .user-word {
             color: #742a2a;
             font-weight: 600;
@@ -326,7 +353,7 @@
             font-size: 14px;
             text-decoration: line-through;
         }
-        
+
         .replay-error-btn {
             background: #48bb78;
             color: white;
@@ -339,12 +366,12 @@
             text-transform: none;
             letter-spacing: 0;
         }
-        
+
         .replay-error-btn:hover {
             background: #38a169;
             transform: translateY(-1px);
         }
-        
+
         .difficulty-badge {
             padding: 5px 12px;
             border-radius: 20px;
@@ -352,22 +379,33 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-        
-        .easy { background: #c6f6d5; color: #22543d; }
-        .medium { background: #feebc8; color: #744210; }
-        .hard { background: #fed7d7; color: #742a2a; }
-        
+
+        .easy {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .medium {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        .hard {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
         .clear-data-btn {
             background: #e53e3e;
             font-size: 12px;
             padding: 8px 16px;
             margin-top: 10px;
         }
-        
+
         .clear-data-btn:hover {
             background: #c53030;
         }
-        
+
         .no-errors {
             text-align: center;
             color: #22543d;
@@ -376,6 +414,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="root"></div>
 
@@ -384,7 +423,7 @@
 
         const WORDS = {
             facile: [
-                'chat', 'chien', 'maison', 'école', 'livre', 
+                'chat', 'chien', 'maison', 'école', 'livre',
                 'table', 'chaise', 'porte', 'fenêtre', 'jardin',
                 'voiture', 'train', 'avion', 'bateau', 'vélo',
                 'rouge', 'bleu', 'vert', 'jaune', 'noir'
@@ -459,9 +498,9 @@
             useEffect(() => {
                 const savedLeaderboard = loadFromStorage(STORAGE_KEYS.LEADERBOARD, []);
                 const savedPreferences = loadFromStorage(STORAGE_KEYS.USER_PREFERENCES, {});
-                
+
                 setLeaderboard(savedLeaderboard);
-                
+
                 // Restore user preferences
                 if (savedPreferences.difficulty) {
                     setDifficulty(savedPreferences.difficulty);
@@ -482,7 +521,7 @@
                         setCurrentGameErrors(savedGameState.currentGameErrors || []); // NEW
                         setUserInput('');
                         setFeedback('');
-                        
+
                         // Speak the current word
                         setTimeout(() => {
                             speakWord(savedGameState.gameWords[savedGameState.currentQuestion]);
@@ -526,8 +565,30 @@
             const speakWord = (word) => {
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(word);
-                    utterance.lang = 'fr-FR';
+
+                    // Get available voices
+                    const voices = window.speechSynthesis.getVoices();
+
+                    // Try to find a French voice (prioritize different French variants)
+                    const frenchVoice = voices.find(voice =>
+                        voice.lang === 'fr-FR' ||
+                        //voice.lang === 'fr-CA' ||
+                        voice.lang === 'fr' ||
+                        voice.name.toLowerCase().includes('french') ||
+                        voice.name.toLowerCase().includes('français')
+                    );
+
+                    if (frenchVoice) {
+                        utterance.voice = frenchVoice;
+                        utterance.lang = frenchVoice.lang;
+                    } else {
+                        // Fallback to setting language without specific voice
+                        utterance.lang = 'fr-FR';
+                    }
+
                     utterance.rate = 0.8;
+                    utterance.pitch = 1.0;
+
                     window.speechSynthesis.speak(utterance);
                 }
             };
@@ -536,7 +597,7 @@
                 const wordList = WORDS[difficulty];
                 const selectedWords = wordList.sort(() => 0.5 - Math.random()).slice(0, 10);
                 const newGameId = generateGameId(); // NEW
-                
+
                 setGameWords(selectedWords);
                 setCurrentQuestion(0);
                 setScore(0);
@@ -545,7 +606,7 @@
                 setCurrentGameId(newGameId); // NEW
                 setCurrentGameErrors([]); // NEW
                 setGameState('playing');
-                
+
                 // Speak first word after a short delay
                 setTimeout(() => {
                     speakWord(selectedWords[0]);
@@ -555,7 +616,7 @@
             const submitAnswer = () => {
                 const currentWord = gameWords[currentQuestion];
                 const isCorrect = userInput.toLowerCase().trim() === currentWord.toLowerCase();
-                
+
                 let newScore = score;
                 if (isCorrect) {
                     newScore = score + 1;
@@ -570,11 +631,11 @@
                         difficulty: difficulty,
                         questionNumber: currentQuestion + 1
                     };
-                    
+
                     // Add to current game errors
                     const newGameErrors = [...currentGameErrors, errorEntry];
                     setCurrentGameErrors(newGameErrors);
-                    
+
                     // Add to error history
                     const errorHistory = loadFromStorage(STORAGE_KEYS.ERROR_HISTORY, []);
                     errorHistory.push(errorEntry);
@@ -582,10 +643,10 @@
                 }
 
                 // Set feedback for previous answer
-                const feedbackMessage = isCorrect 
+                const feedbackMessage = isCorrect
                     ? `✅ Correct! Le mot était: ${currentWord}`
                     : `❌ Incorrect. Le mot était: ${currentWord} (vous avez écrit: ${userInput})`;
-                
+
                 setFeedback(feedbackMessage);
 
                 // Immediately transition to next question or finish game
@@ -596,7 +657,7 @@
                     setTimeout(() => {
                         speakWord(gameWords[currentQuestion + 1]);
                     }, 100);
-                    
+
                     // Clear feedback after showing it briefly
                     setTimeout(() => {
                         setFeedback('');
@@ -620,7 +681,7 @@
                     timestamp: Date.now(),
                     errorCount: currentGameErrors.length // NEW: total errors in this game
                 };
-                
+
                 const newLeaderboard = [...leaderboard, gameResult]
                     .sort((a, b) => {
                         // Sort by score first, then by timestamp for ties
@@ -628,7 +689,7 @@
                         return b.timestamp - a.timestamp;
                     })
                     .slice(0, 10);
-                
+
                 setLeaderboard(newLeaderboard);
                 setGameState('finished');
             };
@@ -672,13 +733,13 @@
             // NEW: Error display component
             const ErrorDisplay = ({ gameId }) => {
                 const errors = getErrorsForGame(gameId);
-                
+
                 if (errors.length === 0) {
                     return (
                         <div className="errors-section">
                             <div className="errors-header">
                                 <span className="errors-title">❌ Erreurs de cette partie</span>
-                                <button 
+                                <button
                                     className="close-errors-btn"
                                     onClick={() => toggleErrorDisplay(gameId)}
                                 >
@@ -694,7 +755,7 @@
                     <div className="errors-section">
                         <div className="errors-header">
                             <span className="errors-title">❌ Erreurs de cette partie ({errors.length})</span>
-                            <button 
+                            <button
                                 className="close-errors-btn"
                                 onClick={() => toggleErrorDisplay(gameId)}
                             >
@@ -710,7 +771,7 @@
                                         <span className="correct-word">{error.word}</span>
                                         <span>Votre réponse:</span>
                                         <span className="user-word">{error.userInput}</span>
-                                        <button 
+                                        <button
                                             className="replay-error-btn"
                                             onClick={() => speakWord(error.word)}
                                         >
@@ -738,9 +799,9 @@
                             <div className="start-section">
                                 <div>
                                     <label htmlFor="difficulty">Choisissez la difficulté:</label>
-                                    <select 
+                                    <select
                                         id="difficulty"
-                                        value={difficulty} 
+                                        value={difficulty}
                                         onChange={(e) => setDifficulty(e.target.value)}
                                     >
                                         <option value="facile">Facile</option>
@@ -750,7 +811,7 @@
                                 </div>
                                 <button onClick={startGame}>Commencer le Jeu</button>
                             </div>
-                            
+
                             {leaderboard.length > 0 && (
                                 <div className="leaderboard">
                                     <h3>🏆 Tableau des Scores</h3>
@@ -770,7 +831,7 @@
                                                     )}
                                                 </div>
                                                 {entry.id && (
-                                                    <button 
+                                                    <button
                                                         className="view-errors-btn"
                                                         onClick={() => toggleErrorDisplay(entry.id)}
                                                     >
@@ -783,7 +844,7 @@
                                             )}
                                         </div>
                                     ))}
-                                    <button 
+                                    <button
                                         className="clear-data-btn"
                                         onClick={clearAllData}
                                     >
@@ -809,15 +870,15 @@
                                     </div>
                                 )}
                             </div>
-                            
+
                             <div className="game-section">
-                                <button 
+                                <button
                                     className="replay-btn"
                                     onClick={() => speakWord(gameWords[currentQuestion])}
                                 >
                                     🔊 Répéter le mot
                                 </button>
-                                
+
                                 <div className="input-section">
                                     <input
                                         type="text"
@@ -826,19 +887,19 @@
                                         onChange={(e) => setUserInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tapez le mot ici..."
-                                        autocapitalize="none" 
-                                        autocomplete="off" 
-                                        autocorrect="off" 
+                                        autocapitalize="none"
+                                        autocomplete="off"
+                                        autocorrect="off"
                                         spellcheck="false"
                                     />
-                                    <button 
+                                    <button
                                         onClick={submitAnswer}
                                         disabled={!userInput.trim()}
                                     >
                                         Valider
                                     </button>
                                 </div>
-                                
+
                                 <div className="feedback-container">
                                     {feedback && (
                                         <div className={`result ${feedback.includes('Correct') ? 'correct' : 'incorrect'}`}>
@@ -866,9 +927,9 @@
                                     </div>
                                 )}
                             </div>
-                            
+
                             <button onClick={resetGame}>Rejouer</button>
-                            
+
                             {leaderboard.length > 0 && (
                                 <div className="leaderboard">
                                     <h3>🏆 Tableau des Scores</h3>
@@ -888,7 +949,7 @@
                                                     )}
                                                 </div>
                                                 {entry.id && (
-                                                    <button 
+                                                    <button
                                                         className="view-errors-btn"
                                                         onClick={() => toggleErrorDisplay(entry.id)}
                                                     >
@@ -901,7 +962,7 @@
                                             )}
                                         </div>
                                     ))}
-                                    <button 
+                                    <button
                                         className="clear-data-btn"
                                         onClick={clearAllData}
                                     >
@@ -918,4 +979,5 @@
         ReactDOM.render(<SpellingGame />, document.getElementById('root'));
     </script>
 </body>
+
 </html>
