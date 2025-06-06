@@ -412,11 +412,132 @@
             font-style: italic;
             padding: 10px;
         }
+
+        /* Debug Section Styles */
+        .debug-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .debug-section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .debug-section ul {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .debug-section li {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        .debug-section .voice-default {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .debug-section .voice-local {
+            border-left-color: #ed8936;
+        }
+
+        .debug-section .voice-remote {
+            border-left-color: #667eea;
+        }
+
+        .debug-refresh-btn {
+            background: #718096;
+            color: white;
+            padding: 8px 16px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .debug-refresh-btn:hover {
+            background: #4a5568;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
 <body>
     <div id="root"></div>
+
+    <!-- Debug Section for Speech Synthesis Voices -->
+    <div id="voice-debug" class="debug-section" style="display: none;"></div>
+
+    <script>
+        // Speech Synthesis Voice Debug Functions
+        function listVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            const debugDiv = document.getElementById("voice-debug");
+            
+            if (voices.length === 0) {
+                debugDiv.innerHTML = `
+                    <h3>🔊 Available Speech Synthesis Voices</h3>
+                    <p style="text-align: center; color: #718096; font-style: italic;">
+                        No voices available or still loading...
+                    </p>
+                    <button class="debug-refresh-btn" onclick="listVoices()">Refresh Voice List</button>
+                `;
+                debugDiv.style.display = 'block';
+                return;
+            }
+
+            const voiceList = voices.map(voice => {
+                const isDefault = voice.default ? ' [default]' : '';
+                const serviceType = voice.localService ? ' [local]' : ' [remote]';
+                const cssClass = voice.default ? 'voice-default' : (voice.localService ? 'voice-local' : 'voice-remote');
+                
+                return `<li class="${cssClass}">${voice.name} (${voice.lang})${serviceType}${isDefault}</li>`;
+            }).join('');
+
+            debugDiv.innerHTML = `
+                <h3>🔊 Available Speech Synthesis Voices (${voices.length})</h3>
+                <ul>${voiceList}</ul>
+                <button class="debug-refresh-btn" onclick="listVoices()">Refresh Voice List</button>
+            `;
+            debugDiv.style.display = 'block';
+        }
+
+        // Initialize voice debug on page load
+        if (typeof window.speechSynthesis !== "undefined") {
+            // Handle voices loading asynchronously
+            window.speechSynthesis.onvoiceschanged = listVoices;
+            // Also call immediately in case voices are already loaded
+            setTimeout(listVoices, 1000);
+        } else {
+            const debugDiv = document.getElementById("voice-debug");
+            debugDiv.innerHTML = `
+                <h3>🔊 Speech Synthesis Debug</h3>
+                <p style="text-align: center; color: #e53e3e;">
+                    Speech Synthesis API is not supported in this browser.
+                </p>
+            `;
+            debugDiv.style.display = 'block';
+        }
+    </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -473,7 +594,7 @@
                 'anthropologie', 'archéologie', 'ethnologie', 'sociologie', 'criminologie', 'victimologie', 'pénologie', 'déontologie', 'axiologie', 'téléologie',
                 'eschatologie', 'sotériologie', 'christologie', 'ecclésiologie', 'mariologie', 'pneumatologie', 'patristique', 'scholastique', 'thomisme', 'augustinisme',
                 'néoplatonisme', 'aristotélisme', 'cartésianisme', 'spinozisme', 'leibnizianisme', 'kantisme', 'hégélianisme', 'schopenhaurisme', 'nietzschéisme', 'existentialisme',
-                'phénoménologie', 'structuralisme', 'poststructuralisme', 'déconstructionnisme', 'postmodernisme', 'néolibéralisme', 'social-démocratie', 'anarcho-syndicalisme', 'crypto-anarchisme', 'techno-progressisme',
+                'phénoménologie', 'structuralisme', 'poststructuralisme', 'déconstructionnisme', 'postmodernisme', 'néolibéralisme', 'social-démocratie', 'anarcho-syndicalisme', 'crypto-anarchisme',
                 'transhumanisme', 'posthumanisme', 'bioconservatisme', 'écofascisme', 'écoféminisme', 'biodynamique', 'permaculture', 'agroécologie', 'sylviculture', 'aquaculture'
             ]
         };
@@ -1012,6 +1133,7 @@
             }
         }
 
+        // Render the main game component
         ReactDOM.render(<SpellingGame />, document.getElementById('root'));
     </script>
 </body>
