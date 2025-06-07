@@ -413,131 +413,63 @@
             padding: 10px;
         }
 
-        /* Debug Section Styles */
-        .debug-section {
-            margin-top: 30px;
+        /* Voice Selection Styles */
+        .voice-section {
+            margin: 20px 0;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            border: 2px solid #e2e8f0;
-            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .debug-section h3 {
+        .voice-section h4 {
             color: #4a5568;
             margin-bottom: 15px;
-            text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
-        .debug-section ul {
-            list-style: none;
-            padding: 0;
-            max-height: 300px;
-            overflow-y: auto;
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .debug-section li {
-            padding: 8px 12px;
-            margin: 5px 0;
-            background: #f7fafc;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
-            font-family: 'Courier New', monospace;
+        .voice-select {
+            min-width: 250px;
+            max-width: 350px;
             font-size: 14px;
-            color: #2d3748;
+            padding: 10px 15px;
         }
 
-        .debug-section .voice-default {
-            border-left-color: #48bb78;
-            background: #f0fff4;
-        }
-
-        .debug-section .voice-local {
-            border-left-color: #ed8936;
-        }
-
-        .debug-section .voice-remote {
-            border-left-color: #667eea;
-        }
-
-        .debug-refresh-btn {
-            background: #718096;
-            color: white;
-            padding: 8px 16px;
-            font-size: 12px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
+        .voice-test-btn {
+            background: #48bb78;
+            padding: 10px 15px;
+            font-size: 14px;
             text-transform: none;
             letter-spacing: 0;
         }
 
-        .debug-refresh-btn:hover {
-            background: #4a5568;
-            transform: translateY(-1px);
+        .voice-test-btn:hover {
+            background: #38a169;
+        }
+
+        .voice-test-btn:disabled {
+            background: #cbd5e0;
+        }
+
+        .voice-status {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
         }
     </style>
 </head>
 
 <body>
     <div id="root"></div>
-
-    <!-- Debug Section for Speech Synthesis Voices -->
-    <div id="voice-debug" class="debug-section" style="display: none;"></div>
-
-    <script>
-        // Speech Synthesis Voice Debug Functions
-        function listVoices() {
-            const voices = window.speechSynthesis.getVoices();
-            const debugDiv = document.getElementById("voice-debug");
-            
-            if (voices.length === 0) {
-                debugDiv.innerHTML = `
-                    <h3>🔊 Available Speech Synthesis Voices</h3>
-                    <p style="text-align: center; color: #718096; font-style: italic;">
-                        No voices available or still loading...
-                    </p>
-                    <button class="debug-refresh-btn" onclick="listVoices()">Refresh Voice List</button>
-                `;
-                debugDiv.style.display = 'block';
-                return;
-            }
-
-            const voiceList = voices.map(voice => {
-                const isDefault = voice.default ? ' [default]' : '';
-                const serviceType = voice.localService ? ' [local]' : ' [remote]';
-                const cssClass = voice.default ? 'voice-default' : (voice.localService ? 'voice-local' : 'voice-remote');
-                
-                return `<li class="${cssClass}">${voice.name} (${voice.lang})${serviceType}${isDefault}</li>`;
-            }).join('');
-
-            debugDiv.innerHTML = `
-                <h3>🔊 Available Speech Synthesis Voices (${voices.length})</h3>
-                <ul>${voiceList}</ul>
-                <button class="debug-refresh-btn" onclick="listVoices()">Refresh Voice List</button>
-            `;
-            debugDiv.style.display = 'block';
-        }
-
-        // Initialize voice debug on page load
-        if (typeof window.speechSynthesis !== "undefined") {
-            // Handle voices loading asynchronously
-            window.speechSynthesis.onvoiceschanged = listVoices;
-            // Also call immediately in case voices are already loaded
-            setTimeout(listVoices, 1000);
-        } else {
-            const debugDiv = document.getElementById("voice-debug");
-            debugDiv.innerHTML = `
-                <h3>🔊 Speech Synthesis Debug</h3>
-                <p style="text-align: center; color: #e53e3e;">
-                    Speech Synthesis API is not supported in this browser.
-                </p>
-            `;
-            debugDiv.style.display = 'block';
-        }
-    </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
@@ -602,9 +534,10 @@
         // LocalStorage utility functions
         const STORAGE_KEYS = {
             LEADERBOARD: 'french-spelling-leaderboard',
-            ERROR_HISTORY: 'french-spelling-error-history', // NEW
+            ERROR_HISTORY: 'french-spelling-error-history',
             GAME_STATE: 'french-spelling-game-state',
-            USER_PREFERENCES: 'french-spelling-preferences'
+            USER_PREFERENCES: 'french-spelling-preferences',
+            SELECTED_VOICE: 'french-spelling-selected-voice'
         };
 
         const saveToStorage = (key, data) => {
@@ -647,9 +580,77 @@
             const [userInput, setUserInput] = useState('');
             const [feedback, setFeedback] = useState('');
             const [leaderboard, setLeaderboard] = useState([]);
-            const [currentGameId, setCurrentGameId] = useState(null); // NEW
-            const [currentGameErrors, setCurrentGameErrors] = useState([]); // NEW
-            const [expandedErrors, setExpandedErrors] = useState({}); // NEW
+            const [currentGameId, setCurrentGameId] = useState(null);
+            const [currentGameErrors, setCurrentGameErrors] = useState([]);
+            const [expandedErrors, setExpandedErrors] = useState({});
+            
+            // Voice selection states
+            const [availableVoices, setAvailableVoices] = useState([]);
+            const [selectedVoice, setSelectedVoice] = useState(null);
+            const [voicesLoaded, setVoicesLoaded] = useState(false);
+
+            // Load voices and set default French voice
+            const loadVoices = () => {
+                if ('speechSynthesis' in window) {
+                    const voices = window.speechSynthesis.getVoices();
+                    setAvailableVoices(voices);
+                    setVoicesLoaded(true);
+
+                    // Load saved voice preference or set default French voice
+                    const savedVoice = loadFromStorage(STORAGE_KEYS.SELECTED_VOICE);
+                    
+                    if (savedVoice && voices.find(v => v.name === savedVoice.name && v.lang === savedVoice.lang)) {
+                        const voice = voices.find(v => v.name === savedVoice.name && v.lang === savedVoice.lang);
+                        setSelectedVoice(voice);
+                    } else {
+                        // Find default French voice
+                        const frenchVoice = voices.find(voice =>
+                            voice.lang === 'fr-FR' ||
+                            voice.lang === 'fr' ||
+                            voice.name.toLowerCase().includes('french') ||
+                            voice.name.toLowerCase().includes('français')
+                        );
+                        
+                        if (frenchVoice) {
+                            setSelectedVoice(frenchVoice);
+                            saveToStorage(STORAGE_KEYS.SELECTED_VOICE, {
+                                name: frenchVoice.name,
+                                lang: frenchVoice.lang
+                            });
+                        }
+                    }
+                }
+            };
+
+            // Initialize voices
+            useEffect(() => {
+                if ('speechSynthesis' in window) {
+                    // Handle voices loading asynchronously
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                    // Also call immediately in case voices are already loaded
+                    loadVoices();
+                    setTimeout(loadVoices, 1000);
+                }
+            }, []);
+
+            // Handle voice selection
+            const handleVoiceChange = (voiceName) => {
+                const voice = availableVoices.find(v => v.name === voiceName);
+                if (voice) {
+                    setSelectedVoice(voice);
+                    saveToStorage(STORAGE_KEYS.SELECTED_VOICE, {
+                        name: voice.name,
+                        lang: voice.lang
+                    });
+                }
+            };
+
+            // Test voice functionality
+            const testVoice = () => {
+                if (selectedVoice) {
+                    speakWord('Bonjour');
+                }
+            };
 
             // Load data from localStorage on component mount
             useEffect(() => {
@@ -674,8 +675,8 @@
                         setCurrentQuestion(savedGameState.currentQuestion);
                         setScore(savedGameState.score);
                         setGameWords(savedGameState.gameWords);
-                        setCurrentGameId(savedGameState.currentGameId); // NEW
-                        setCurrentGameErrors(savedGameState.currentGameErrors || []); // NEW
+                        setCurrentGameId(savedGameState.currentGameId);
+                        setCurrentGameErrors(savedGameState.currentGameErrors || []);
                         setUserInput('');
                         setFeedback('');
 
@@ -710,8 +711,8 @@
                         currentQuestion,
                         score,
                         gameWords,
-                        currentGameId, // NEW
-                        currentGameErrors // NEW
+                        currentGameId,
+                        currentGameErrors
                     };
                     saveToStorage(STORAGE_KEYS.GAME_STATE, gameStateData);
                 } else {
@@ -723,21 +724,10 @@
                 if ('speechSynthesis' in window) {
                     const utterance = new SpeechSynthesisUtterance(word);
 
-                    // Get available voices
-                    const voices = window.speechSynthesis.getVoices();
-
-                    // Try to find a French voice (prioritize different French variants)
-                    const frenchVoice = voices.find(voice =>
-                        voice.lang === 'fr-FR' ||
-                        //voice.lang === 'fr-CA' ||
-                        voice.lang === 'fr' ||
-                        voice.name.toLowerCase().includes('french') ||
-                        voice.name.toLowerCase().includes('français')
-                    );
-
-                    if (frenchVoice) {
-                        utterance.voice = frenchVoice;
-                        utterance.lang = frenchVoice.lang;
+                    // Use selected voice if available
+                    if (selectedVoice) {
+                        utterance.voice = selectedVoice;
+                        utterance.lang = selectedVoice.lang;
                     } else {
                         // Fallback to setting language without specific voice
                         utterance.lang = 'fr-FR';
@@ -753,15 +743,15 @@
             const startGame = () => {
                 const wordList = WORDS[difficulty];
                 const selectedWords = wordList.sort(() => 0.5 - Math.random()).slice(0, 10);
-                const newGameId = generateGameId(); // NEW
+                const newGameId = generateGameId();
 
                 setGameWords(selectedWords);
                 setCurrentQuestion(0);
                 setScore(0);
                 setUserInput('');
                 setFeedback('');
-                setCurrentGameId(newGameId); // NEW
-                setCurrentGameErrors([]); // NEW
+                setCurrentGameId(newGameId);
+                setCurrentGameErrors([]);
                 setGameState('playing');
 
                 // Speak first word after a short delay
@@ -779,7 +769,7 @@
                     newScore = score + 1;
                     setScore(newScore);
                 } else {
-                    // NEW: Track error
+                    // Track error
                     const errorEntry = {
                         gameId: currentGameId,
                         timestamp: Date.now(),
@@ -830,13 +820,13 @@
 
             const finishGame = (finalScore = score) => {
                 const gameResult = {
-                    id: currentGameId, // NEW: unique identifier
+                    id: currentGameId,
                     date: new Date().toLocaleDateString('fr-FR'),
                     time: new Date().toLocaleTimeString('fr-FR'),
                     score: finalScore,
                     difficulty: difficulty,
                     timestamp: Date.now(),
-                    errorCount: currentGameErrors.length // NEW: total errors in this game
+                    errorCount: currentGameErrors.length
                 };
 
                 const newLeaderboard = [...leaderboard, gameResult]
@@ -855,8 +845,8 @@
                 setGameState('start');
                 setUserInput('');
                 setFeedback('');
-                setCurrentGameId(null); // NEW
-                setCurrentGameErrors([]); // NEW
+                setCurrentGameId(null);
+                setCurrentGameErrors([]);
                 clearStorage(STORAGE_KEYS.GAME_STATE);
             };
 
@@ -864,22 +854,23 @@
                 const confirmClear = window.confirm('Êtes-vous sûr de vouloir effacer toutes les données sauvegardées?');
                 if (confirmClear) {
                     clearStorage(STORAGE_KEYS.LEADERBOARD);
-                    clearStorage(STORAGE_KEYS.ERROR_HISTORY); // NEW
+                    clearStorage(STORAGE_KEYS.ERROR_HISTORY);
                     clearStorage(STORAGE_KEYS.GAME_STATE);
                     clearStorage(STORAGE_KEYS.USER_PREFERENCES);
+                    clearStorage(STORAGE_KEYS.SELECTED_VOICE);
                     setLeaderboard([]);
                     setDifficulty('facile');
                     alert('Toutes les données ont été effacées!');
                 }
             };
 
-            // NEW: Get errors for a specific game
+            // Get errors for a specific game
             const getErrorsForGame = (gameId) => {
                 const errorHistory = loadFromStorage(STORAGE_KEYS.ERROR_HISTORY, []);
                 return errorHistory.filter(error => error.gameId === gameId);
             };
 
-            // NEW: Toggle error display
+            // Toggle error display
             const toggleErrorDisplay = (gameId) => {
                 setExpandedErrors(prev => ({
                     ...prev,
@@ -887,7 +878,7 @@
                 }));
             };
 
-            // NEW: Error display component
+            // Error display component
             const ErrorDisplay = ({ gameId }) => {
                 const errors = getErrorsForGame(gameId);
 
@@ -948,6 +939,57 @@
                 }
             };
 
+            // Voice Selection Component
+            const VoiceSelector = () => {
+                if (!('speechSynthesis' in window)) {
+                    return (
+                        <div className="voice-section">
+                            <h4>🔊 Sélection de la voix</h4>
+                            <div className="voice-status">
+                                Speech Synthesis API n'est pas supporté dans ce navigateur.
+                            </div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="voice-section">
+                        <h4>🔊 Sélection de la voix</h4>
+                        <div className="voice-controls">
+                            <select
+                                className="voice-select"
+                                value={selectedVoice?.name || ''}
+                                onChange={(e) => handleVoiceChange(e.target.value)}
+                                disabled={!voicesLoaded || availableVoices.length === 0}
+                            >
+                                <option value="">
+                                    {voicesLoaded ? 'Sélectionnez une voix...' : 'Chargement des voix...'}
+                                </option>
+                                {availableVoices.map((voice, index) => (
+                                    <option key={index} value={voice.name}>
+                                        {voice.name} ({voice.lang})
+                                        {voice.lang.startsWith('fr') ? ' 🇫🇷' : ''}
+                                        {voice.default ? ' [défaut]' : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                className="voice-test-btn"
+                                onClick={testVoice}
+                                disabled={!selectedVoice}
+                            >
+                                🔊 Tester
+                            </button>
+                        </div>
+                        {selectedVoice && (
+                            <div className="voice-status">
+                                Voix sélectionnée: {selectedVoice.name} ({selectedVoice.lang})
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
             if (gameState === 'start') {
                 return (
                     <div className="container">
@@ -968,6 +1010,8 @@
                                 </div>
                                 <button onClick={startGame}>Commencer le Jeu</button>
                             </div>
+
+                            <VoiceSelector />
 
                             {leaderboard.length > 0 && (
                                 <div className="leaderboard">
@@ -1043,11 +1087,8 @@
                                         value={userInput}
                                         onChange={(e) => setUserInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
-                                        placeholder="Tapez le mot ici..."
-                                        autocapitalize="none"
-                                        autocomplete="off"
-                                        autocorrect="off"
-                                        spellcheck="false"
+                                        placeholder="Tapez le mot que vous entendez..."
+                                        autoFocus
                                     />
                                     <button
                                         onClick={submitAnswer}
@@ -1059,7 +1100,7 @@
 
                                 <div className="feedback-container">
                                     {feedback && (
-                                        <div className={`result ${feedback.includes('Correct') ? 'correct' : 'incorrect'}`}>
+                                        <div className={`result ${feedback.includes('✅') ? 'correct' : 'incorrect'}`}>
                                             {feedback}
                                         </div>
                                     )}
@@ -1074,18 +1115,34 @@
                 return (
                     <div className="container">
                         <div className="game-card">
-                            <h1>🎉 Jeu Terminé!</h1>
-                            <div className="score">Score Final: {score}/10</div>
+                            <h1>Jeu Terminé!</h1>
+                            <div className="score">Score final: {score}/10</div>
                             <div className="question-info">
                                 Difficulté: {difficulty}
                                 {currentGameErrors.length > 0 && (
                                     <div className="error-count">
-                                        {currentGameErrors.length} erreur{currentGameErrors.length > 1 ? 's' : ''} dans cette partie
+                                        {currentGameErrors.length} erreur{currentGameErrors.length > 1 ? 's' : ''} au total
                                     </div>
                                 )}
                             </div>
 
-                            <button onClick={resetGame}>Rejouer</button>
+                            {currentGameErrors.length > 0 && (
+                                <div style={{ marginTop: '20px' }}>
+                                    <button
+                                        className="view-errors-btn"
+                                        onClick={() => toggleErrorDisplay(currentGameId)}
+                                    >
+                                        📝 Voir les erreurs de cette partie
+                                    </button>
+                                    {expandedErrors[currentGameId] && (
+                                        <ErrorDisplay gameId={currentGameId} />
+                                    )}
+                                </div>
+                            )}
+
+                            <button onClick={resetGame} style={{ marginTop: '20px' }}>
+                                Nouvelle Partie
+                            </button>
 
                             {leaderboard.length > 0 && (
                                 <div className="leaderboard">
