@@ -9,6 +9,8 @@
     <script crossorigin
         src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- Add crypto-js for SHA-1 hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -413,8 +415,8 @@
             padding: 10px;
         }
 
-        /* Voice Selection Styles */
-        .voice-section {
+        /* Audio Settings Styles */
+        .audio-section {
             margin: 20px 0;
             padding: 20px;
             background: rgba(255, 255, 255, 0.1);
@@ -422,13 +424,13 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .voice-section h4 {
+        .audio-section h4 {
             color: #4a5568;
             margin-bottom: 15px;
             font-size: 1.1rem;
         }
 
-        .voice-controls {
+        .audio-controls {
             display: flex;
             gap: 10px;
             align-items: center;
@@ -436,14 +438,22 @@
             justify-content: center;
         }
 
-        .voice-select {
-            min-width: 250px;
-            max-width: 350px;
-            font-size: 14px;
-            padding: 10px 15px;
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .voice-test-btn {
+        .volume-slider {
+            width: 150px;
+            height: 5px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .audio-test-btn {
             background: #48bb78;
             padding: 10px 15px;
             font-size: 14px;
@@ -451,15 +461,15 @@
             letter-spacing: 0;
         }
 
-        .voice-test-btn:hover {
+        .audio-test-btn:hover {
             background: #38a169;
         }
 
-        .voice-test-btn:disabled {
+        .audio-test-btn:disabled {
             background: #cbd5e0;
         }
 
-        .voice-status {
+        .audio-status {
             font-size: 12px;
             color: #666;
             font-style: italic;
@@ -482,6 +492,16 @@
             border-radius: 12px;
             margin: 20px 0;
         }
+
+        .audio-error {
+            background: #ffeaa7;
+            color: #d63031;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -489,7 +509,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // LocalStorage utility functions
         const STORAGE_KEYS = {
@@ -497,7 +517,7 @@
             ERROR_HISTORY: 'french-spelling-error-history',
             GAME_STATE: 'french-spelling-game-state',
             USER_PREFERENCES: 'french-spelling-preferences',
-            SELECTED_VOICE: 'french-spelling-selected-voice'
+            AUDIO_SETTINGS: 'french-spelling-audio-settings'
         };
 
         const saveToStorage = (key, data) => {
@@ -529,6 +549,17 @@
         // Generate unique game ID
         const generateGameId = () => {
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        };
+
+        // Generate SHA-1 hash for a word
+        const generateSHA1 = (word) => {
+            return CryptoJS.SHA1(word.toLowerCase()).toString();
+        };
+
+        // Audio utility functions
+        const getAudioPath = (word) => {
+            const hash = generateSHA1(word);
+            return `sound/${hash}.wav`;
         };
 
         // Hook to load words from JSON file
@@ -583,76 +614,24 @@
             const [currentGameErrors, setCurrentGameErrors] = useState([]);
             const [expandedErrors, setExpandedErrors] = useState({});
             
-            // Voice selection states
-            const [availableVoices, setAvailableVoices] = useState([]);
-            const [selectedVoice, setSelectedVoice] = useState(null);
-            const [voicesLoaded, setVoicesLoaded] = useState(false);
+            // Audio settings states
+            const [volume, setVolume] = useState(0.8);
+            const [audioError, setAudioError] = useState(null);
+            const audioRef = useRef(null);
 
             // Load words from JSON file
             const { words, loading: wordsLoading, error: wordsError } = useWords();
 
-            // Load voices and set default French voice
-            const loadVoices = () => {
-                if ('speechSynthesis' in window) {
-                    const voices = window.speechSynthesis.getVoices();
-                    setAvailableVoices(voices);
-                    setVoicesLoaded(true);
-
-                    // Load saved voice preference or set default French voice
-                    const savedVoice = loadFromStorage(STORAGE_KEYS.SELECTED_VOICE);
-                    
-                    if (savedVoice && voices.find(v => v.name === savedVoice.name && v.lang === savedVoice.lang)) {
-                        const voice = voices.find(v => v.name === savedVoice.name && v.lang === savedVoice.lang);
-                        setSelectedVoice(voice);
-                    } else {
-                        // Find default French voice
-                        const frenchVoice = voices.find(voice =>
-                            voice.lang === 'fr-FR' ||
-                            voice.lang === 'fr' ||
-                            voice.name.toLowerCase().includes('french') ||
-                            voice.name.toLowerCase().includes('français')
-                        );
-                        
-                        if (frenchVoice) {
-                            setSelectedVoice(frenchVoice);
-                            saveToStorage(STORAGE_KEYS.SELECTED_VOICE, {
-                                name: frenchVoice.name,
-                                lang: frenchVoice.lang
-                            });
-                        }
-                    }
-                }
-            };
-
-            // Initialize voices
+            // Load audio settings
             useEffect(() => {
-                if ('speechSynthesis' in window) {
-                    // Handle voices loading asynchronously
-                    window.speechSynthesis.onvoiceschanged = loadVoices;
-                    // Also call immediately in case voices are already loaded
-                    loadVoices();
-                    setTimeout(loadVoices, 1000);
-                }
+                const savedAudioSettings = loadFromStorage(STORAGE_KEYS.AUDIO_SETTINGS, { volume: 0.8 });
+                setVolume(savedAudioSettings.volume);
             }, []);
 
-            // Handle voice selection
-            const handleVoiceChange = (voiceName) => {
-                const voice = availableVoices.find(v => v.name === voiceName);
-                if (voice) {
-                    setSelectedVoice(voice);
-                    saveToStorage(STORAGE_KEYS.SELECTED_VOICE, {
-                        name: voice.name,
-                        lang: voice.lang
-                    });
-                }
-            };
-
-            // Test voice functionality
-            const testVoice = () => {
-                if (selectedVoice) {
-                    speakWord('Bonjour');
-                }
-            };
+            // Save audio settings
+            useEffect(() => {
+                saveToStorage(STORAGE_KEYS.AUDIO_SETTINGS, { volume });
+            }, [volume]);
 
             // Load data from localStorage on component mount
             useEffect(() => {
@@ -684,7 +663,7 @@
 
                         // Speak the current word
                         setTimeout(() => {
-                            speakWord(savedGameState.gameWords[savedGameState.currentQuestion]);
+                            playWord(savedGameState.gameWords[savedGameState.currentQuestion]);
                         }, 500);
                     } else {
                         clearStorage(STORAGE_KEYS.GAME_STATE);
@@ -722,24 +701,33 @@
                 }
             }, [gameState, difficulty, currentQuestion, score, gameWords, currentGameId, currentGameErrors]);
 
-            const speakWord = (word) => {
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(word);
+            const playWord = (word) => {
+                const audioPath = getAudioPath(word);
+                setAudioError(null);
 
-                    // Use selected voice if available
-                    if (selectedVoice) {
-                        utterance.voice = selectedVoice;
-                        utterance.lang = selectedVoice.lang;
-                    } else {
-                        // Fallback to setting language without specific voice
-                        utterance.lang = 'fr-FR';
-                    }
+                // Create a new audio instance
+                const audio = new Audio(audioPath);
+                audio.volume = volume;
 
-                    utterance.rate = 0.8;
-                    utterance.pitch = 1.0;
+                audio.oncanplaythrough = () => {
+                    audio.play().catch(error => {
+                        console.error('Error playing audio:', error);
+                        setAudioError(`Impossible de jouer le son pour "${word}". Fichier: ${audioPath}`);
+                    });
+                };
 
-                    window.speechSynthesis.speak(utterance);
-                }
+                audio.onerror = () => {
+                    console.error('Audio file not found:', audioPath);
+                    setAudioError(`Fichier audio introuvable pour "${word}". Hash: ${generateSHA1(word)}`);
+                };
+
+                // Update ref for potential cleanup
+                audioRef.current = audio;
+            };
+
+            const testAudio = () => {
+                // Test with a simple word
+                playWord('bonjour');
             };
 
             const startGame = () => {
@@ -760,10 +748,11 @@
                 setCurrentGameId(newGameId);
                 setCurrentGameErrors([]);
                 setGameState('playing');
+                setAudioError(null);
 
                 // Speak first word after a short delay
                 setTimeout(() => {
-                    speakWord(selectedWords[0]);
+                    playWord(selectedWords[0]);
                 }, 500);
             };
 
@@ -809,7 +798,7 @@
                     setUserInput('');
                     // Speak next word immediately
                     setTimeout(() => {
-                        speakWord(gameWords[currentQuestion + 1]);
+                        playWord(gameWords[currentQuestion + 1]);
                     }, 100);
 
                     // Clear feedback after showing it briefly
@@ -854,6 +843,7 @@
                 setFeedback('');
                 setCurrentGameId(null);
                 setCurrentGameErrors([]);
+                setAudioError(null);
                 clearStorage(STORAGE_KEYS.GAME_STATE);
             };
 
@@ -864,9 +854,10 @@
                     clearStorage(STORAGE_KEYS.ERROR_HISTORY);
                     clearStorage(STORAGE_KEYS.GAME_STATE);
                     clearStorage(STORAGE_KEYS.USER_PREFERENCES);
-                    clearStorage(STORAGE_KEYS.SELECTED_VOICE);
+                    clearStorage(STORAGE_KEYS.AUDIO_SETTINGS);
                     setLeaderboard([]);
                     setDifficulty('facile');
+                    setVolume(0.8);
                     alert('Toutes les données ont été effacées!');
                 }
             };
@@ -928,7 +919,7 @@
                                         <span className="user-word">{error.userInput}</span>
                                         <button
                                             className="replay-error-btn"
-                                            onClick={() => speakWord(error.word)}
+                                            onClick={() => playWord(error.word)}
                                         >
                                             🔊 Écouter
                                         </button>
@@ -946,53 +937,40 @@
                 }
             };
 
-            // Voice Selection Component
-            const VoiceSelector = () => {
-                if (!('speechSynthesis' in window)) {
-                    return (
-                        <div className="voice-section">
-                            <h4>🔊 Sélection de la voix</h4>
-                            <div className="voice-status">
-                                Speech Synthesis API n'est pas supporté dans ce navigateur.
-                            </div>
-                        </div>
-                    );
-                }
-
+            // Audio Settings Component
+            const AudioSettings = () => {
                 return (
-                    <div className="voice-section">
-                        <h4>🔊 Sélection de la voix</h4>
-                        <div className="voice-controls">
-                            <select
-                                className="voice-select"
-                                value={selectedVoice?.name || ''}
-                                onChange={(e) => handleVoiceChange(e.target.value)}
-                                disabled={!voicesLoaded || availableVoices.length === 0}
-                            >
-                                <option value="">
-                                    {voicesLoaded ? 'Sélectionnez une voix...' : 'Chargement des voix...'}
-                                </option>
-                                {availableVoices.map((voice, index) => (
-                                    <option key={index} value={voice.name}>
-                                        {voice.name} ({voice.lang})
-                                        {voice.lang.startsWith('fr') ? ' 🇫🇷' : ''}
-                                        {voice.default ? ' [défaut]' : ''}
-                                    </option>
-                                ))}
-                            </select>
+                    <div className="audio-section">
+                        <h4>🔊 Paramètres Audio</h4>
+                        <div className="audio-controls">
+                            <div className="volume-control">
+                                <span>Volume:</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.1"
+                                    value={volume}
+                                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                    className="volume-slider"
+                                />
+                                <span>{Math.round(volume * 100)}%</span>
+                            </div>
                             <button
-                                className="voice-test-btn"
-                                onClick={testVoice}
-                                disabled={!selectedVoice}
+                                className="audio-test-btn"
+                                onClick={testAudio}
                             >
-                                🔊 Tester
+                                🔊 Test Audio
                             </button>
                         </div>
-                        {selectedVoice && (
-                            <div className="voice-status">
-                                Voix sélectionnée: {selectedVoice.name} ({selectedVoice.lang})
+                        {audioError && (
+                            <div className="audio-error">
+                                {audioError}
                             </div>
                         )}
+                        <div className="audio-status">
+                            Les fichiers audio sont chargés depuis le dossier sound/ avec des noms encodés en SHA-1
+                        </div>
                     </div>
                 );
             };
@@ -1055,7 +1033,7 @@
                                 </button>
                             </div>
 
-                            <VoiceSelector />
+                            <AudioSettings />
 
                             {leaderboard.length > 0 && (
                                 <div className="leaderboard">
@@ -1116,10 +1094,16 @@
                                 )}
                             </div>
 
+                            {audioError && (
+                                <div className="audio-error">
+                                    {audioError}
+                                </div>
+                            )}
+
                             <div className="game-section">
                                 <button
                                     className="replay-btn"
-                                    onClick={() => speakWord(gameWords[currentQuestion])}
+                                    onClick={() => playWord(gameWords[currentQuestion])}
                                 >
                                     🔊 Répéter le mot
                                 </button>
