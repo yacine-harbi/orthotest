@@ -559,7 +559,7 @@
         // Audio utility functions
         const getAudioPath = (word) => {
             const hash = generateSHA1(word);
-            return `sound/${hash}.wav`;
+            return `sounds/${hash}.wav`;
         };
 
         // Hook to load words from JSON file
@@ -969,7 +969,7 @@
                             </div>
                         )}
                         <div className="audio-status">
-                            Les fichiers audio sont chargés depuis le dossier sound/ avec des noms encodés en SHA-1
+                            Les fichiers audio sont chargés depuis le dossier sounds/ avec des noms encodés en SHA-1
                         </div>
                     </div>
                 );
