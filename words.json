@@ -1,0 +1,53 @@
+{
+  "facile": [
+    "chat", "chien", "maison", "école", "livre", "table", "chaise", "porte", "fenêtre", "jardin",
+    "voiture", "train", "avion", "bateau", "vélo", "rouge", "bleu", "vert", "jaune", "noir",
+    "blanc", "manger", "boire", "dormir", "jouer", "courir", "marcher", "écrire", "lire", "parler",
+    "famille", "père", "mère", "enfant", "frère", "soeur", "grand", "petit", "beau", "laid",
+    "chaud", "froid", "jour", "nuit", "matin", "soir", "eau", "pain", "lait", "fromage",
+    "viande", "légume", "fruit", "pomme", "orange", "banane", "carotte", "tomate", "salade", "oignon",
+    "tête", "bras", "jambe", "main", "pied", "oeil", "nez", "bouche", "oreille", "cheveu",
+    "chemise", "pantalon", "robe", "chaussure", "chapeau", "manteau", "veste", "short", "jupe", "pull",
+    "ami", "amie", "copain", "voisin", "médecin", "professeur", "élève", "boulanger", "coiffeur", "fermier",
+    "arbre", "fleur", "herbe", "feuille", "branche", "racine", "soleil", "lune", "étoile", "nuage",
+    "pluie", "neige", "vent", "mer", "lac", "rivière", "montagne", "forêt", "plage", "désert",
+    "ville", "village", "rue", "route", "pont", "église", "hôpital", "magasin", "restaurant", "café",
+    "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche", "janvier", "février", "mars",
+    "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre", "année",
+    "heure", "minute", "seconde", "semaine", "mois", "hier", "aujourd", "demain", "maintenant", "bientôt"
+  ],
+  "moyen": [
+    "acquérir", "développer", "excellent", "fasciner", "gouvernement", "hypothèse", "intelligent", "joaillerie", "kermesse", "lymphatique",
+    "magnifique", "nécessaire", "obscurité", "psychiatre", "quarantaine", "rhododendron", "sympathique", "théâtre", "philosophie", "géographie",
+    "mathématiques", "physique", "chimie", "biologie", "psychologie", "rythme", "gymnastique", "orthographe", "grammaire", "vocabulaire",
+    "dictionnaire", "encyclopédie", "bibliothèque", "université", "professeur", "étudiant", "exercice", "problème", "solution", "explication",
+    "température", "atmosphère", "respiration", "circulation", "digestion", "alimentation", "équilibre", "hygiène", "santé", "maladie",
+    "médicament", "traitement", "guérison", "prévention", "vaccination", "consultation", "diagnostic", "symptôme", "fièvre", "douleur",
+    "fatigue", "stress", "anxiété", "bonheur", "tristesse", "colère", "peur", "courage", "patience", "générosité",
+    "politesse", "respect", "tolérance", "justice", "liberté", "égalité", "fraternité", "démocratie", "république", "élection",
+    "président", "ministre", "député", "maire", "conseil", "assemblée", "parlement", "constitution", "citoyen", "civisme",
+    "technologie", "ordinateur", "internet", "logiciel", "programme", "système", "réseau", "connexion", "application", "interface",
+    "économie", "commerce", "industrie", "agriculture", "banque", "monnaie", "budget", "dépense", "revenu", "impôt",
+    "transport", "communication", "information", "journalisme", "télévision", "radio", "journal", "magazine", "publicité", "culture",
+    "tradition", "coutume", "festival", "célébration", "anniversaire", "mariage", "baptême", "communion", "confirmation", "funérailles",
+    "musique", "chanson", "instrument", "orchestre", "concert", "danse", "ballet", "opéra", "comédie", "tragédie",
+    "peinture", "sculpture", "architecture", "littérature", "poésie", "roman", "nouvelle", "essai", "biographie", "histoire"
+  ],
+  "difficile": [
+    "anticonstitutionnellement", "concupiscence", "dithyrambique", "ecchymose", "flibustier", "gynécologue", "hippopotame", "ichtyologie", "jalousement", "kinésithérapeute",
+    "labyrinthique", "mnémotechnique", "nomenclature", "œcuménique", "psychanalyse", "quincaillerie", "rhumatisme", "stéthoscope", "tyrannosaure", "xylophone",
+    "chrysanthème", "anémone", "bougainvillée", "dahlia", "forsythia", "glycine", "hortensia", "jacinthe", "magnolia", "narcisse",
+    "orchidée", "pivoine", "tulipe", "zinnia", "phytothérapie", "homéopathie", "acupuncture", "ostéopathie", "chiropraxie", "naturopathie",
+    "aromathérapie", "réflexologie", "psychothérapie", "neurologie", "cardiologie", "dermatologie", "ophtalmologie", "otorhinolaryngologie", "gastroentérologie", "pneumologie",
+    "rhumatologie", "endocrinologie", "hématologie", "oncologie", "gériatrie", "pédiatrie", "psychiatrie", "radiologie", "anesthésiologie", "chirurgie",
+    "gynécologie", "urologie", "orthopédie", "traumatologie", "pharmacologie", "toxicologie", "épidémiologie", "microbiologie", "immunologie", "génétique",
+    "biotechnologie", "nanotechnologie", "cybernétique", "informatique", "électronique", "mécanique", "hydraulique", "pneumatique", "thermodynamique", "électromagnétisme",
+    "radioactivité", "spectroscopie", "chromatographie", "crystallographie", "métallurgie", "pétrochimie", "épistémologie", "phénoménologie", "herméneutique", "dialectique",
+    "rhétorique", "sémiotique", "linguistique", "phonétique", "morphologie", "syntaxe", "sémantique", "pragmatique", "sociolinguistique", "psycholinguistique",
+    "anthropologie", "archéologie", "ethnologie", "sociologie", "criminologie", "victimologie", "pénologie", "déontologie", "axiologie", "téléologie",
+    "eschatologie", "sotériologie", "christologie", "ecclésiologie", "mariologie", "pneumatologie", "patristique", "scholastique", "thomisme", "augustinisme",
+    "néoplatonisme", "aristotélisme", "cartésianisme", "spinozisme", "leibnizianisme", "kantisme", "hégélianisme", "schopenhaurisme", "nietzschéisme", "existentialisme",
+    "phénoménologie", "structuralisme", "poststructuralisme", "déconstructionnisme", "postmodernisme", "néolibéralisme", "social-démocratie", "anarcho-syndicalisme", "crypto-anarchisme",
+    "transhumanisme", "posthumanisme", "bioconservatisme", "écofascisme", "écoféminisme", "biodynamique", "permaculture", "agroécologie", "sylviculture", "aquaculture"
+  ]
+}
