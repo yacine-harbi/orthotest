@@ -14,7 +14,7 @@
     "ville", "village", "rue", "route", "pont", "église", "hôpital", "magasin", "restaurant", "café",
     "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche", "janvier", "février", "mars",
     "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre", "année",
-    "heure", "minute", "seconde", "semaine", "mois", "hier", "aujourd", "demain", "maintenant", "bientôt"
+    "heure", "minute", "seconde", "semaine", "mois", "hier", "aujourd'hui", "demain", "maintenant", "bientôt"
   ],
   "moyen": [
     "acquérir", "développer", "excellent", "fasciner", "gouvernement", "hypothèse", "intelligent", "joaillerie", "kermesse", "lymphatique",
