@@ -445,67 +445,6 @@
             padding: 10px;
         }
 
-        /* Audio Settings Styles */
-        .audio-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .audio-section h4 {
-            color: #4a5568;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .audio-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .volume-slider {
-            width: 150px;
-            height: 5px;
-            border-radius: 5px;
-            background: #e2e8f0;
-            outline: none;
-            cursor: pointer;
-        }
-
-        .audio-test-btn {
-            background: #48bb78;
-            padding: 10px 15px;
-            font-size: 14px;
-            text-transform: none;
-            letter-spacing: 0;
-        }
-
-        .audio-test-btn:hover {
-            background: #38a169;
-        }
-
-        .audio-test-btn:disabled {
-            background: #cbd5e0;
-        }
-
-        .audio-status {
-            font-size: 12px;
-            color: #666;
-            font-style: italic;
-            margin-top: 10px;
-        }
-
         /* Loading state */
         .loading {
             text-align: center;
@@ -1043,42 +982,6 @@
                 }
             };
 
-            // Audio Settings Component
-            const AudioSettings = () => {
-                return (
-                    <div className="audio-section">
-                        <h4>🔊 Paramètres Audio</h4>
-                        <div className="audio-controls">
-                            <div className="volume-control">
-                                <span>Volume:</span>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.1"
-                                    value={volume}
-                                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                    className="volume-slider"
-                                />
-                                <span>{Math.round(volume * 100)}%</span>
-                            </div>
-                            <button 
-                                onClick={testAudio} 
-                                className="audio-test-btn"
-                                disabled={!words || !words[difficulty] || Object.keys(words[difficulty]).length === 0}
-                            >
-                                🔊 Test Audio
-                            </button>
-                        </div>
-                        {audioError && (
-                            <div className="audio-status">
-                                {audioError}
-                            </div>
-                        )}
-                    </div>
-                );
-            };
-
             // Credits component
             const Credits = () => {
                 return (
@@ -1101,15 +1004,14 @@
                 );
             }
 
-            // Show error state if words failed to load
+            // Show error state if words fail to load
             if (wordsError) {
                 return (
                     <div className="container">
                         <div className="game-card">
                             <div className="error-message">
-                                Erreur lors du chargement des mots: {wordsError}
-                                <br />
-                                <button onClick={() => window.location.reload()}>Réessayer</button>
+                                Erreur lors du chargement des mots: {wordsError}<br/>
+                                Veuillez rafraîchir la page ou vérifier votre connexion.
                             </div>
                         </div>
                     </div>
@@ -1119,14 +1021,12 @@
             return (
                 <div className="container">
                     <div className="game-card">
-                        <h1>Orthotest</h1>
-                        <h2>Test d'Orthographe Française</h2>
+                        <h1>Test d'Orthographe Française</h1>
 
                         {gameState === 'start' && (
                             <div className="start-section">
-                                <AudioSettings />
                                 <div>
-                                    <label htmlFor="difficulty">Choisissez la difficulté:</label>
+                                    <label htmlFor="difficulty">Choisissez votre niveau :</label>
                                     <select
                                         id="difficulty"
                                         value={difficulty}
@@ -1137,7 +1037,7 @@
                                         <option value="difficile">Difficile</option>
                                     </select>
                                 </div>
-                                <button onClick={startGame}>Commencer le test</button>
+                                <button onClick={startGame}>Commencer le Test</button>
                             </div>
                         )}
 
@@ -1145,6 +1045,12 @@
                             <div className="game-section">
                                 <div className="score">Score: {score}/10</div>
                                 <div className="question-info">Question {currentQuestion + 1}/10</div>
+                                
+                                {audioError && (
+                                    <div className="audio-error">
+                                        {audioError}
+                                    </div>
+                                )}
 
                                 <div className="input-section">
                                     <input
@@ -1153,24 +1059,28 @@
                                         value={userInput}
                                         onChange={handleInputChange}
                                         onKeyPress={handleKeyPress}
-                                        placeholder="Tapez le mot que vous entendez..."
+                                        placeholder="Tapez votre réponse ici..."
                                         className="word-input"
+                                        autoFocus
                                         autoComplete="off"
                                         autoCapitalize="none"
                                         autoCorrect="off"
                                         spellCheck="false"
-                                        autoFocus
                                     />
-                                    <button onClick={submitAnswer} disabled={!userInput.trim()}>
+                                    <button 
+                                        onClick={submitAnswer}
+                                        disabled={!userInput.trim()}
+                                    >
                                         Valider
                                     </button>
-                                    <button
-                                        onClick={() => playWordByFilename(currentAudioFiles[currentQuestion])}
-                                        className="replay-btn"
-                                    >
-                                        🔊 Réécouter
-                                    </button>
                                 </div>
+                                
+                                <button 
+                                    onClick={() => playWordByFilename(currentAudioFiles[currentQuestion])}
+                                    className="replay-btn"
+                                >
+                                    🔊 Écouter à nouveau
+                                </button>
 
                                 <div className="feedback-container">
                                     {feedback && (
@@ -1179,36 +1089,33 @@
                                         </div>
                                     )}
                                 </div>
-
-                                {audioError && (
-                                    <div className="audio-error">
-                                        {audioError}
-                                    </div>
-                                )}
                             </div>
                         )}
 
                         {gameState === 'finished' && (
                             <div className="game-section">
-                                <h2>Test terminé!</h2>
-                                <div className="score">Score final: {score}/10</div>
-                                <button onClick={resetGame}>Nouveau test</button>
+                                <h2>Test Terminé!</h2>
+                                <div className="score">Score Final: {score}/10</div>
+                                <button onClick={resetGame}>Recommencer</button>
                             </div>
                         )}
 
                         {leaderboard.length > 0 && (
                             <div className="leaderboard">
-                                <h3>📊 Historique des scores</h3>
+                                <h3>🏆 Historique des Parties</h3>
                                 {leaderboard.map((entry, index) => (
                                     <div key={entry.id} className="leaderboard-entry">
                                         <div className="leaderboard-header">
                                             <div className="leaderboard-info">
                                                 <span>#{index + 1}</span>
-                                                <strong>{entry.score}/10</strong>
-                                                <span className={`difficulty-badge ${entry.difficulty === 'facile' ? 'easy' : entry.difficulty === 'moyen' ? 'medium' : 'hard'}`}>
+                                                <span>{entry.score}/10</span>
+                                                <span className={`difficulty-badge ${
+                                                    entry.difficulty === 'facile' ? 'easy' :
+                                                    entry.difficulty === 'moyen' ? 'medium' : 'hard'
+                                                }`}>
                                                     {entry.difficulty}
                                                 </span>
-                                                <span>{entry.date} à {entry.time}</span>
+                                                <span>{entry.date} {entry.time}</span>
                                                 {entry.errorCount > 0 && (
                                                     <span className="error-count">
                                                         {entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''}
@@ -1224,11 +1131,13 @@
                                                 </button>
                                             )}
                                         </div>
-                                        {expandedErrors[entry.id] && <ErrorDisplay gameId={entry.id} />}
+                                        {expandedErrors[entry.id] && (
+                                            <ErrorDisplay gameId={entry.id} />
+                                        )}
                                     </div>
                                 ))}
-                                <button onClick={clearAllData} className="clear-data-btn">
-                                    🗑️ Effacer toutes les données
+                                <button className="clear-data-btn" onClick={clearAllData}>
+                                    Effacer toutes les données
                                 </button>
                             </div>
                         )}
