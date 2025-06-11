@@ -9,7 +9,10 @@
     <script crossorigin
         src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <!-- Remove crypto-js as we no longer need SHA-1 hashing -->
+    <!-- Audio source credits: 
+         Audio files are from https://shtooka.net/credits.php
+         License: Creative Commons Attribution 2.0 (http://creativecommons.org/licenses/by/2.0)
+         Speaker: Vion Nicolas -->
     <style>
         * {
             margin: 0;
@@ -63,6 +66,34 @@
             font-size: 16px;
             margin: 10px;
             transition: all 0.3s ease;
+        }
+
+        /* Mobile-specific styles for input fields */
+        @media (max-width: 768px) {
+            select,
+            input {
+                /* Disable autocapitalization, autocorrect, and spellcheck on mobile */
+                -webkit-appearance: none;
+                appearance: none;
+            }
+
+            input[type="text"] {
+                autocapitalize: none;
+                autocorrect: off;
+                spellcheck: false;
+                -webkit-autocapitalize: none;
+                -webkit-autocorrect: off;
+                -webkit-spellcheck: false;
+            }
+
+            .word-input {
+                autocapitalize: none;
+                autocorrect: off;
+                spellcheck: false;
+                -webkit-autocapitalize: none;
+                -webkit-autocorrect: off;
+                -webkit-spellcheck: false;
+            }
         }
 
         select:focus,
@@ -148,7 +179,7 @@
             padding: 15px;
             border-radius: 12px;
             font-weight: 600;
-            animation: slideInFade 3s ease-in-out;
+            animation: slideInFade 5s ease-in-out; /* Extended from 3s to 5s */
             width: 100%;
         }
 
@@ -158,12 +189,12 @@
                 transform: translateX(-20px);
             }
 
-            10% {
+            8% { /* Adjusted for longer duration */
                 opacity: 1;
                 transform: translateX(0);
             }
 
-            90% {
+            92% { /* Adjusted for longer duration */
                 opacity: 1;
                 transform: translateX(0);
             }
@@ -501,6 +532,27 @@
             font-size: 14px;
             text-align: center;
         }
+
+        /* Credits section */
+        .credits {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 12px;
+            color: #4a5568;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .credits a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .credits a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -554,6 +606,7 @@
         const getAudioPath = (filename) => {
             return `sounds/${filename}`;
         };
+
 
         // Hook to load words from JSON file - Updated to use words_dictionary.json
         const useWords = () => {
@@ -822,10 +875,10 @@
                         playWordByFilename(currentAudioFiles[currentQuestion + 1]);
                     }, 100);
 
-                    // Clear feedback after showing it briefly
+                    // Clear feedback after showing it for longer (5 seconds instead of 3)
                     setTimeout(() => {
                         setFeedback('');
-                    }, 3000);
+                    }, 5000);
                 } else {
                     // Clear feedback and finish game after brief delay
                     setTimeout(() => {
@@ -997,14 +1050,27 @@
                 );
             };
 
+            // Credits Component
+            const Credits = () => {
+                return (
+                    <div className="credits">
+                        <p>
+                            <strong>Crédits Audio:</strong> Fichiers audio de <a href="https://shtooka.net/credits.php" target="_blank" rel="noopener noreferrer">Shtooka.net</a>
+                            <br />
+                            <strong>Licence:</strong> <a href="http://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 2.0</a>
+                            <br />
+                            <strong>Locuteur:</strong> Vion Nicolas
+                        </p>
+                    </div>
+                );
+            };
+
             // Show loading state while words are being loaded
             if (wordsLoading) {
                 return (
                     <div className="container">
                         <div className="game-card">
-                            <div className="loading">
-                                Chargement des mots...
-                            </div>
+                            <div className="loading">Chargement des mots...</div>
                         </div>
                     </div>
                 );
@@ -1015,120 +1081,67 @@
                 return (
                     <div className="container">
                         <div className="game-card">
-                            <h1>Test d'Orthographe</h1>
                             <div className="error-message">
-                                <h3>Erreur de chargement</h3>
-                                <p>Impossible de charger les mots du jeu.</p>
-                                <p>Erreur: {wordsError}</p>
-                                <p>Assurez-vous que le fichier words_dictionary.json est présent dans le répertoire du jeu.</p>
+                                Erreur lors du chargement des mots: {wordsError}
+                                <br />
+                                <button onClick={() => window.location.reload()}>Réessayer</button>
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            if (gameState === 'start') {
-                return (
-                    <div className="container">
-                        <div className="game-card">
-                            <h1>🎯 Test d'Orthographe Française</h1>
+            return (
+                <div className="container">
+                    <div className="game-card">
+                        <h1>Test d'Orthographe Française</h1>
+
+                        {gameState === 'start' && (
                             <div className="start-section">
+                                <AudioSettings />
                                 <div>
-                                    <label htmlFor="difficulty">Choisissez la difficulté :</label>
+                                    <label htmlFor="difficulty">Choisissez la difficulté:</label>
                                     <select
                                         id="difficulty"
                                         value={difficulty}
                                         onChange={(e) => setDifficulty(e.target.value)}
                                     >
-                                        <option value="facile">😊 Facile</option>
-                                        <option value="moyen">😐 Moyen</option>
-                                        <option value="difficile">😤 Difficile</option>
+                                        <option value="facile">Facile</option>
+                                        <option value="moyen">Moyen</option>
+                                        <option value="difficile">Difficile</option>
                                     </select>
                                 </div>
-                                <button onClick={startGame}>
-                                    🚀 Commencer le jeu
-                                </button>
+                                <button onClick={startGame}>Commencer le test</button>
                             </div>
+                        )}
 
-                            <AudioSettings />
-
-                            {leaderboard.length > 0 && (
-                                <div className="leaderboard">
-                                    <h3>🏆 Meilleures Performances</h3>
-                                    {leaderboard.map((entry, index) => (
-                                        <div key={entry.id} className="leaderboard-entry">
-                                            <div className="leaderboard-header">
-                                                <div className="leaderboard-info">
-                                                    <span>#{index + 1}</span>
-                                                    <span className={`difficulty-badge ${entry.difficulty === 'facile' ? 'easy' : entry.difficulty === 'moyen' ? 'medium' : 'hard'}`}>
-                                                        {entry.difficulty}
-                                                    </span>
-                                                    <strong>{entry.score}/10</strong>
-                                                    <span>{entry.date} à {entry.time}</span>
-                                                    {entry.errorCount > 0 && (
-                                                        <span className="error-count">
-                                                            {entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                {entry.errorCount > 0 && (
-                                                    <button
-                                                        className="view-errors-btn"
-                                                        onClick={() => toggleErrorDisplay(entry.id)}
-                                                    >
-                                                        {expandedErrors[entry.id] ? 'Masquer' : 'Voir'} erreurs
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {expandedErrors[entry.id] && <ErrorDisplay gameId={entry.id} />}
-                                        </div>
-                                    ))}
-                                    <button className="clear-data-btn" onClick={clearAllData}>
-                                        🗑️ Effacer toutes les données
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
-
-            if (gameState === 'playing') {
-                return (
-                    <div className="container">
-                        <div className="game-card">
-                            <h1>🎯 Test d'Orthographe</h1>
+                        {gameState === 'playing' && (
                             <div className="game-section">
                                 <div className="score">Score: {score}/10</div>
-                                <div className="question-info">
-                                    Question {currentQuestion + 1}/10
-                                    <div className={`difficulty-badge ${difficulty === 'facile' ? 'easy' : difficulty === 'moyen' ? 'medium' : 'hard'}`}>
-                                        {difficulty}
-                                    </div>
-                                </div>
-
-                                <button
-                                    className="replay-btn"
-                                    onClick={() => currentAudioFiles[currentQuestion] && playWordByFilename(currentAudioFiles[currentQuestion])}
-                                >
-                                    🔊 Répéter le mot
-                                </button>
+                                <div className="question-info">Question {currentQuestion + 1}/10</div>
 
                                 <div className="input-section">
                                     <input
                                         type="text"
-                                        className="word-input"
                                         value={userInput}
                                         onChange={(e) => setUserInput(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tapez le mot que vous entendez..."
+                                        className="word-input"
+                                        autoComplete="off"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        spellCheck="false"
                                         autoFocus
                                     />
+                                    <button onClick={submitAnswer} disabled={!userInput.trim()}>
+                                        Valider
+                                    </button>
                                     <button
-                                        onClick={submitAnswer}
-                                        disabled={!userInput.trim()}
+                                        onClick={() => playWordByFilename(currentAudioFiles[currentQuestion])}
+                                        className="replay-btn"
                                     >
-                                        ✓ Valider
+                                        🔊 Réécouter
                                     </button>
                                 </div>
 
@@ -1145,49 +1158,61 @@
                                         {audioError}
                                     </div>
                                 )}
-
-                                <AudioSettings />
                             </div>
-                        </div>
-                    </div>
-                );
-            }
+                        )}
 
-            if (gameState === 'finished') {
-                return (
-                    <div className="container">
-                        <div className="game-card">
-                            <h1>🎉 Partie terminée!</h1>
+                        {gameState === 'finished' && (
                             <div className="game-section">
+                                <h2>Test terminé!</h2>
                                 <div className="score">Score final: {score}/10</div>
-                                <div className={`difficulty-badge ${difficulty === 'facile' ? 'easy' : difficulty === 'moyen' ? 'medium' : 'hard'}`}>
-                                    {difficulty}
-                                </div>
-                                
-                                {currentGameErrors.length > 0 && (
-                                    <div style={{ margin: '20px 0' }}>
-                                        <button
-                                            className="view-errors-btn"
-                                            onClick={() => toggleErrorDisplay(currentGameId)}
-                                        >
-                                            {expandedErrors[currentGameId] ? 'Masquer' : 'Voir'} vos erreurs ({currentGameErrors.length})
-                                        </button>
-                                        {expandedErrors[currentGameId] && <ErrorDisplay gameId={currentGameId} />}
-                                    </div>
-                                )}
+                                <button onClick={resetGame}>Nouveau test</button>
+                            </div>
+                        )}
 
-                                <button onClick={resetGame}>
-                                    🔄 Nouvelle partie
+                        {leaderboard.length > 0 && (
+                            <div className="leaderboard">
+                                <h3>📊 Historique des scores</h3>
+                                {leaderboard.map((entry, index) => (
+                                    <div key={entry.id} className="leaderboard-entry">
+                                        <div className="leaderboard-header">
+                                            <div className="leaderboard-info">
+                                                <span>#{index + 1}</span>
+                                                <span className={`difficulty-badge ${entry.difficulty === 'facile' ? 'easy' : entry.difficulty === 'moyen' ? 'medium' : 'hard'}`}>
+                                                    {entry.difficulty}
+                                                </span>
+                                                <span><strong>{entry.score}/10</strong></span>
+                                                <span>{entry.date} - {entry.time}</span>
+                                                {entry.errorCount > 0 && (
+                                                    <span className="error-count">
+                                                        {entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {entry.errorCount > 0 && (
+                                                <button
+                                                    className="view-errors-btn"
+                                                    onClick={() => toggleErrorDisplay(entry.id)}
+                                                >
+                                                    {expandedErrors[entry.id] ? 'Masquer erreurs' : 'Voir erreurs'}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {expandedErrors[entry.id] && <ErrorDisplay gameId={entry.id} />}
+                                    </div>
+                                ))}
+                                <button onClick={clearAllData} className="clear-data-btn">
+                                    🗑️ Effacer toutes les données
                                 </button>
                             </div>
-                        </div>
+                        )}
+
+                        <Credits />
                     </div>
-                );
-            }
+                </div>
+            );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<SpellingGame />);
+        ReactDOM.render(<SpellingGame />, document.getElementById('root'));
     </script>
 </body>
 
