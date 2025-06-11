@@ -602,6 +602,12 @@
             return Date.now().toString(36) + Math.random().toString(36).substr(2);
         };
 
+        // Apostrophe normalization utility function
+        const normalizeApostrophes = (text) => {
+            // Replace curly apostrophes (') with straight apostrophes (')
+            return text.replace(/'/g, "'");
+        };
+
         // Audio utility functions - Updated to use FLAC files from dictionary
         const getAudioPath = (filename) => {
             return `sounds/${filename}`;
@@ -840,16 +846,25 @@
                 }, 500);
             };
 
+            // Handle input change with apostrophe normalization
+            const handleInputChange = (e) => {
+                const normalizedValue = normalizeApostrophes(e.target.value);
+                setUserInput(normalizedValue);
+            };
+
             const submitAnswer = () => {
                 const currentWord = gameWords[currentQuestion];
-                const isCorrect = userInput.toLowerCase().trim() === currentWord.toLowerCase();
+                // Normalize both user input and expected word for comparison
+                const normalizedUserInput = normalizeApostrophes(userInput.toLowerCase().trim());
+                const normalizedCurrentWord = normalizeApostrophes(currentWord.toLowerCase());
+                const isCorrect = normalizedUserInput === normalizedCurrentWord;
 
                 let newScore = score;
                 if (isCorrect) {
                     newScore = score + 1;
                     setScore(newScore);
                 } else {
-                    // Track error
+                    // Track error with original (non-normalized) user input for display
                     const errorEntry = {
                         gameId: currentGameId,
                         timestamp: Date.now(),
@@ -1055,9 +1070,11 @@
                                 🔊 Test Audio
                             </button>
                         </div>
-                        <div className="audio-status">
-                            Cliquez sur "Test Audio" pour vérifier que le son fonctionne correctement
-                        </div>
+                        {audioError && (
+                            <div className="audio-status">
+                                {audioError}
+                            </div>
+                        )}
                     </div>
                 );
             };
@@ -1066,18 +1083,14 @@
             const Credits = () => {
                 return (
                     <div className="credits">
-                        <p>
-                            <strong>Crédits Audio:</strong> Les fichiers audio proviennent de <a href="https://shtooka.net/credits.php" target="_blank" rel="noopener noreferrer">Shtooka.net</a>
-                            <br />
-                            <strong>Licence:</strong> <a href="http://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 2.0</a>
-                            <br />
-                            <strong>Locuteur:</strong> Vion Nicolas
-                        </p>
+                        Audio files are provided by <a href="https://shtooka.net" target="_blank" rel="noopener noreferrer">Shtooka</a><br/>
+                        Licensed under <a href="http://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 2.0</a><br/>
+                        Speaker: Vion Nicolas
                     </div>
                 );
             };
 
-            // Show loading state while words are being loaded
+            // Show loading state while words are loading
             if (wordsLoading) {
                 return (
                     <div className="container">
@@ -1137,7 +1150,7 @@
                                         ref={inputRef}
                                         type="text"
                                         value={userInput}
-                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onChange={handleInputChange}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Tapez le mot que vous entendez..."
                                         className="word-input"
@@ -1190,11 +1203,11 @@
                                         <div className="leaderboard-header">
                                             <div className="leaderboard-info">
                                                 <span>#{index + 1}</span>
+                                                <strong>{entry.score}/10</strong>
                                                 <span className={`difficulty-badge ${entry.difficulty === 'facile' ? 'easy' : entry.difficulty === 'moyen' ? 'medium' : 'hard'}`}>
                                                     {entry.difficulty}
                                                 </span>
-                                                <span><strong>{entry.score}/10</strong></span>
-                                                <span>{entry.date} - {entry.time}</span>
+                                                <span>{entry.date} à {entry.time}</span>
                                                 {entry.errorCount > 0 && (
                                                     <span className="error-count">
                                                         {entry.errorCount} erreur{entry.errorCount > 1 ? 's' : ''}
@@ -1206,7 +1219,7 @@
                                                     className="view-errors-btn"
                                                     onClick={() => toggleErrorDisplay(entry.id)}
                                                 >
-                                                    {expandedErrors[entry.id] ? 'Masquer erreurs' : 'Voir erreurs'}
+                                                    {expandedErrors[entry.id] ? 'Masquer' : 'Voir'} erreurs
                                                 </button>
                                             )}
                                         </div>
