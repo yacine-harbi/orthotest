@@ -665,6 +665,9 @@
             const [volume, setVolume] = useState(0.8);
             const [audioError, setAudioError] = useState(null);
             const audioRef = useRef(null);
+            
+            // Input ref for focusing after each question
+            const inputRef = useRef(null);
 
             // Load words from JSON file
             const { words, loading: wordsLoading, error: wordsError } = useWords();
@@ -709,10 +712,14 @@
                         setUserInput('');
                         setFeedback('');
 
-                        // Speak the current word
+                        // Speak the current word and focus input
                         setTimeout(() => {
                             if (savedGameState.currentAudioFiles && savedGameState.currentAudioFiles[savedGameState.currentQuestion]) {
                                 playWordByFilename(savedGameState.currentAudioFiles[savedGameState.currentQuestion]);
+                            }
+                            // Focus input after loading
+                            if (inputRef.current) {
+                                inputRef.current.focus();
                             }
                         }, 500);
                     } else {
@@ -823,9 +830,13 @@
                 setGameState('playing');
                 setAudioError(null);
 
-                // Speak first word after a short delay
+                // Speak first word after a short delay and focus input
                 setTimeout(() => {
                     playWordByFilename(selectedAudioFiles[0]);
+                    // Focus the input element after starting the game
+                    if (inputRef.current) {
+                        inputRef.current.focus();
+                    }
                 }, 500);
             };
 
@@ -870,9 +881,14 @@
                 if (currentQuestion < 9) {
                     setCurrentQuestion(currentQuestion + 1);
                     setUserInput('');
-                    // Speak next word immediately
+                    
+                    // Speak next word and focus input
                     setTimeout(() => {
                         playWordByFilename(currentAudioFiles[currentQuestion + 1]);
+                        // Focus the input element for the next question
+                        if (inputRef.current) {
+                            inputRef.current.focus();
+                        }
                     }, 100);
 
                     // Clear feedback after showing it for longer (5 seconds instead of 3)
@@ -1031,31 +1047,27 @@
                                 />
                                 <span>{Math.round(volume * 100)}%</span>
                             </div>
-                            <button
+                            <button 
+                                onClick={testAudio} 
                                 className="audio-test-btn"
-                                onClick={testAudio}
+                                disabled={!words || !words[difficulty] || Object.keys(words[difficulty]).length === 0}
                             >
                                 🔊 Test Audio
                             </button>
                         </div>
-                        {audioError && (
-                            <div className="audio-error">
-                                {audioError}
-                            </div>
-                        )}
                         <div className="audio-status">
-                            Les fichiers audio FLAC sont chargés depuis le dossier sounds/
+                            Cliquez sur "Test Audio" pour vérifier que le son fonctionne correctement
                         </div>
                     </div>
                 );
             };
 
-            // Credits Component
+            // Credits component
             const Credits = () => {
                 return (
                     <div className="credits">
                         <p>
-                            <strong>Crédits Audio:</strong> Fichiers audio de <a href="https://shtooka.net/credits.php" target="_blank" rel="noopener noreferrer">Shtooka.net</a>
+                            <strong>Crédits Audio:</strong> Les fichiers audio proviennent de <a href="https://shtooka.net/credits.php" target="_blank" rel="noopener noreferrer">Shtooka.net</a>
                             <br />
                             <strong>Licence:</strong> <a href="http://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener noreferrer">Creative Commons Attribution 2.0</a>
                             <br />
@@ -1122,6 +1134,7 @@
 
                                 <div className="input-section">
                                     <input
+                                        ref={inputRef}
                                         type="text"
                                         value={userInput}
                                         onChange={(e) => setUserInput(e.target.value)}
